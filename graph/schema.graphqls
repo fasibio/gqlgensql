@@ -19,13 +19,13 @@ type Todo {
   id: ID!
   text: String!
   done: Boolean!
-  user: User!
 }
 
 type User {
   id: ID!
   name: String!
   test: String!
+  todos: [Todo]
 }
 
 type Query {
