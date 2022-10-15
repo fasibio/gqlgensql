@@ -23,7 +23,7 @@ const (
 type GqlGenSqlPlugin struct {
 }
 
-type SqlBuilderList []SqlBuilder
+type SqlBuilderList map[string]SqlBuilder
 type SqlBuilderRefs map[string]*SqlBuilder
 type SqlBuilderHandler struct {
 	List SqlBuilderList
@@ -459,6 +459,10 @@ func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 			builder.Fields = f
 			for k, v := range a {
 				builderHandler.Refs[k] = v
+				if _, ok := builderHandler.List[k]; !ok {
+					builderHandler.List[k] = *v // @TODO needed to generate all queries and mutations for ref types also ?
+				}
+
 			}
 			if a := sqlDirective.Arguments.ForName(ArgumentQuery); a != nil {
 				err := customizeSqlBuilderQuery(&builder.Query, a)
@@ -470,7 +474,7 @@ func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 					panic(err)
 				}
 			}
-			builderHandler.List = append(builderHandler.List, builder)
+			builderHandler.List[builder.TypeName] = builder
 		}
 	}
 	result := getExtendsSource(builderHandler)

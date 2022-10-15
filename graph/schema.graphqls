@@ -23,25 +23,13 @@ type Todo {
   owner: User!
 }
 
-type User {
+type User @SQL(){
   id: ID!
   name: String!
   test: String!
   todos: [Todo]
 }
 
-type Query {
-  todos: [Todo!]!
-}
-
-input NewTodo {
-  text: String!
-  userId: String!
-}
-
-type Mutation {
-  createTodo(input: NewTodo!): Todo!
-}
 
 
 directive @validated on FIELD_DEFINITION

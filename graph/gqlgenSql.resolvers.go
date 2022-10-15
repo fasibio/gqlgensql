@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fasibio/gqlgensql/graph/generated"
 	"github.com/fasibio/gqlgensql/graph/model"
 )
 
@@ -25,6 +26,36 @@ func (r *mutationResolver) DeleteCat(ctx context.Context, filter model.CatFilter
 	panic(fmt.Errorf("not implemented: DeleteCat - deleteCat"))
 }
 
+// AddTodo is the resolver for the addTodo field.
+func (r *mutationResolver) AddTodo(ctx context.Context, input []*model.AddTodoInput) (*model.AddTodoPayload, error) {
+	panic(fmt.Errorf("not implemented: AddTodo - addTodo"))
+}
+
+// UpdateTodo is the resolver for the updateTodo field.
+func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error) {
+	panic(fmt.Errorf("not implemented: UpdateTodo - updateTodo"))
+}
+
+// DeleteTodo is the resolver for the deleteTodo field.
+func (r *mutationResolver) DeleteTodo(ctx context.Context, filter model.TodoFilter) (*model.DeleteTodoPayload, error) {
+	panic(fmt.Errorf("not implemented: DeleteTodo - deleteTodo"))
+}
+
+// AddUser is the resolver for the addUser field.
+func (r *mutationResolver) AddUser(ctx context.Context, input []*model.AddUserInput) (*model.AddUserPayload, error) {
+	panic(fmt.Errorf("not implemented: AddUser - addUser"))
+}
+
+// UpdateUser is the resolver for the updateUser field.
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserPayload, error) {
+	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
+}
+
+// DeleteUser is the resolver for the deleteUser field.
+func (r *mutationResolver) DeleteUser(ctx context.Context, filter model.UserFilter) (*model.DeleteUserPayload, error) {
+	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
+}
+
 // GetCat is the resolver for the getCat field.
 func (r *queryResolver) GetCat(ctx context.Context, id string) (*model.Cat, error) {
 	panic(fmt.Errorf("not implemented: GetCat - getCat"))
@@ -39,3 +70,42 @@ func (r *queryResolver) QueryCat(ctx context.Context, filter *model.CatFilter, o
 func (r *queryResolver) AggregateCat(ctx context.Context, filter *model.CatFilter) (*model.CatAggregateResult, error) {
 	panic(fmt.Errorf("not implemented: AggregateCat - aggregateCat"))
 }
+
+// GetTodo is the resolver for the getTodo field.
+func (r *queryResolver) GetTodo(ctx context.Context, id string) (*model.Todo, error) {
+	panic(fmt.Errorf("not implemented: GetTodo - getTodo"))
+}
+
+// QueryTodo is the resolver for the queryTodo field.
+func (r *queryResolver) QueryTodo(ctx context.Context, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error) {
+	panic(fmt.Errorf("not implemented: QueryTodo - queryTodo"))
+}
+
+// AggregateTodo is the resolver for the aggregateTodo field.
+func (r *queryResolver) AggregateTodo(ctx context.Context, filter *model.TodoFilter) (*model.TodoAggregateResult, error) {
+	panic(fmt.Errorf("not implemented: AggregateTodo - aggregateTodo"))
+}
+
+// GetUser is the resolver for the getUser field.
+func (r *queryResolver) GetUser(ctx context.Context, id string) (*model.User, error) {
+	panic(fmt.Errorf("not implemented: GetUser - getUser"))
+}
+
+// QueryUser is the resolver for the queryUser field.
+func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented: QueryUser - queryUser"))
+}
+
+// AggregateUser is the resolver for the aggregateUser field.
+func (r *queryResolver) AggregateUser(ctx context.Context, filter *model.UserFilter) (*model.UserAggregateResult, error) {
+	panic(fmt.Errorf("not implemented: AggregateUser - aggregateUser"))
+}
+
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
+// Query returns generated.QueryResolver implementation.
+func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
