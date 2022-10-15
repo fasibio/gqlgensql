@@ -10,9 +10,19 @@ import (
 	"github.com/fasibio/gqlgensql/graph/model"
 )
 
-// Empty is the resolver for the empty field.
-func (r *queryResolver) Empty(ctx context.Context) (string, error) {
-	panic(fmt.Errorf("not implemented: Empty - empty"))
+// AddCat is the resolver for the addCat field.
+func (r *mutationResolver) AddCat(ctx context.Context, input []*model.AddCatInput) (*model.AddCatPayload, error) {
+	panic(fmt.Errorf("not implemented: AddCat - addCat"))
+}
+
+// UpdateCat is the resolver for the updateCat field.
+func (r *mutationResolver) UpdateCat(ctx context.Context, input model.UpdateCatInput) (*model.UpdateCatPayload, error) {
+	panic(fmt.Errorf("not implemented: UpdateCat - updateCat"))
+}
+
+// DeleteCat is the resolver for the deleteCat field.
+func (r *mutationResolver) DeleteCat(ctx context.Context, filter model.CatFilter) (*model.DeleteCatPayload, error) {
+	panic(fmt.Errorf("not implemented: DeleteCat - deleteCat"))
 }
 
 // GetCat is the resolver for the getCat field.

@@ -24,33 +24,53 @@ type GqlGenSqlPlugin struct {
 }
 
 type SqlBuilderList []SqlBuilder
-
-func (sbl SqlBuilderList) AllRef() map[string]SqlBuilder {
-	res := make(map[string]SqlBuilder)
-	for _, a := range sbl {
-		b := AllRefFields(a.Fields)
-		for k, v := range b {
-			res[k] = v
-		}
-	}
-	b, _ := json.Marshal(res)
-	log.Println("AllRef", string(b))
-	return res
+type SqlBuilderRefs map[string]*SqlBuilder
+type SqlBuilderHandler struct {
+	List SqlBuilderList
+	Refs SqlBuilderRefs
 }
 
-func AllRefFields(fields []SqlBuilderField) map[string]SqlBuilder {
+func (sbh SqlBuilderRefs) ReferObjects() map[string]SqlBuilder {
 	res := make(map[string]SqlBuilder)
-	for _, f := range fields {
-		if f.Ref != nil {
-			res[f.Ref.TypeName] = *f.Ref
-			b := AllRefFields(f.Ref.Fields)
-			for k, v := range b {
-				res[k] = v
-			}
-		}
+	for key, value := range sbh {
+		res[key] = *value
 	}
 	return res
 }
+
+func NewSqlBuilderHandler() SqlBuilderHandler {
+	return SqlBuilderHandler{
+		List: make(SqlBuilderList, 0),
+		Refs: make(SqlBuilderRefs),
+	}
+}
+
+// func (sbl SqlBuilderList) AllRef() map[string]SqlBuilder {
+// 	res := make(map[string]SqlBuilder)
+// 	for _, a := range sbl {
+// 		b := AllRefFields(a.Fields)
+// 		for k, v := range b {
+// 			res[k] = v
+// 		}
+// 	}
+// 	b, _ := json.Marshal(res)
+// 	log.Println("AllRef", string(b))
+// 	return res
+// }
+
+// func AllRefFields(fields []SqlBuilderField) map[string]SqlBuilder {
+// 	res := make(map[string]SqlBuilder)
+// 	for _, f := range fields {
+// 		if f.Ref != nil {
+// 			res[f.Ref.TypeName] = *f.Ref
+// 			b := AllRefFields(f.Ref.Fields)
+// 			for k, v := range b {
+// 				res[k] = v
+// 			}
+// 		}
+// 	}
+// 	return res
+// }
 
 type SqlBuilder struct {
 	TypeName string             `json:"type_name,omitempty"`
@@ -100,11 +120,41 @@ func (s SqlBuilder) InputFields() []SqlBuilderField {
 	return res
 }
 
+// / All field which can be added by mutation from client
+func (s SqlBuilder) InputRefFields() []SqlBuilderField {
+	return s.Fields
+}
+
+func (s SqlBuilder) InputPatchFields() []SqlBuilderField {
+	res := make([]SqlBuilderField, 0)
+	for _, v := range s.Fields {
+		if !v.Primary {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
 type SqlBuilderField struct {
 	Name    string `json:"name,omitempty"`
 	GqlType string `json:"gql_type,omitempty"`
 	Primary bool
-	Ref     *SqlBuilder
+	BuiltIn bool
+	Raw     *ast.FieldDefinition
+}
+
+func (sbf *SqlBuilderField) RefGqlType() string {
+	if sbf.BuiltIn {
+		return sbf.GqlType
+	}
+	if isGqlArray(sbf.Raw.Type.String()) {
+		return fmt.Sprintf("[%sRef!]", sbf.GqlType)
+	}
+	return fmt.Sprintf("%sRef", sbf.GqlType)
+}
+
+func isGqlArray(v string) bool {
+	return v[0] == '['
 }
 
 type SqlBuilderQuery struct {
@@ -112,6 +162,10 @@ type SqlBuilderQuery struct {
 	Query        bool     `json:"query,omitempty"`
 	Aggregate    bool     `json:"aggregate,omitempty"`
 	DirectiveExt []string `json:"directiveEtx,omitempty"`
+}
+
+func (sbq *SqlBuilderQuery) HasQueries() bool {
+	return sbq.Query || sbq.Get || sbq.Aggregate
 }
 
 type SqlBuilderMutation struct {
@@ -147,11 +201,24 @@ func (ggs GqlGenSqlPlugin) MutateConfig(cfg *config.Config) error {
 	return nil
 }
 
-func getExtendsSource(builder SqlBuilderList) string {
+func getExtendsSource(builder SqlBuilderHandler) string {
+
+	b, _ := json.Marshal(builder.Refs)
+	log.Println(string(b))
 	// to generate refs []sqlBuilder needs a methode to find out all refs where it is nessasary to gen a new input file
-	builder.AllRef()
 	temp := `
-{{- range $key, $value := .}}
+
+{{- range $key, $value := .Refs.ReferObjects}}
+
+input {{$key}}Ref {
+	{{- range $fieldKey, $field := $value.InputRefFields}}
+  {{$field.Name}}: {{$field.RefGqlType}}
+	{{- end}}
+}
+
+{{- end}}
+
+{{- range $key, $value := .List}}
 enum {{$value.TypeName}}HasFilter {
 	{{- range $fieldKey, $field := $value.Fields}}
   {{$field.Name}}
@@ -186,20 +253,44 @@ type {{$value.TypeName}}AggregateResult {
 	{{- end}}
 }
 
-input Add{{$value.TypeName}}Input {
-	{{- range $fieldKey, $field := $value.InputFields}}
-  {{$field.Name}}: {{$field.GqlType}}!
-	{{- end}}
-}
+
 
 type Add{{$value.TypeName}}Payload {
 	{{$value.TypeName}}(filter: {{$value.TypeName}}Filter, order: {{$value.TypeName}}Order, first: Int, offset: Int): [{{$value.TypeName}}]
 }
 
+type Update{{$value.TypeName}}Payload {
+	{{$value.TypeName}}(filter: {{$value.TypeName}}Filter, order: {{$value.TypeName}}Order, first: Int, offset: Int): [{{$value.TypeName}}]
+	numIds: Int
+}
+
+type Delete{{$value.TypeName}}Payload {
+	{{$value.TypeName}}(filter: {{$value.TypeName}}Filter, order: {{$value.TypeName}}Order, first: Int, offset: Int): [{{$value.TypeName}}]
+	numIds: Int
+	msg: String
+}
+
+input Add{{$value.TypeName}}Input{
+	{{- range $fieldKey, $field := $value.Fields}}
+  {{$field.Name}}: {{$field.RefGqlType}}!
+	{{- end}}
+}
+
+input {{$value.TypeName}}Patch{
+	{{- range $fieldKey, $field := $value.InputPatchFields}}
+  {{$field.Name}}: {{$field.RefGqlType}}
+	{{- end}}
+}
+
+input Update{{$value.TypeName}}Input{
+	filter: {{$value.TypeName}}Filter
+	set: {{$value.TypeName}}Patch
+	remove: {{$value.TypeName}}Patch
+}
+
 {{- end}}
 extend type Query {
-	empty: String! # Hack for empty query
-	{{- range $key, $value := .}}
+	{{- range $key, $value := .List}}
 		{{- if $value.Query.Get}}
   get{{$value.TypeName}}({{$value.PrimaryField.Name}}: {{$value.PrimaryField.GqlType}}!): {{$value.TypeName}}{{ range $directiveKey, $directive := $value.Query.DirectiveExt}} {{$directive}}{{end}}
 		{{- end}}
@@ -212,9 +303,26 @@ extend type Query {
 	{{- end}}
 }
 
+extend type Mutation {
+	{{- range $key, $value := .List}}
+	{{- if $value.Mutation.Add}}
+	add{{$value.TypeName}}(input: [Add{{$value.TypeName}}Input!]!): Add{{$value.TypeName}}Payload
+	{{- end}}
+	{{- if $value.Mutation.Update}}
+	update{{$value.TypeName}}(input: Update{{$value.TypeName}}Input!):  Update{{$value.TypeName}}Payload
+	{{- end}}
+	{{- if $value.Mutation.Delete}}
+	delete{{$value.TypeName}}(filter: {{$value.TypeName}}Filter! ): Delete{{$value.TypeName}}Payload
+	{{- end}}
+	{{- end}}
+}
+
 
 	`
 	tmpl, _ := template.New("sourcebuilder").Parse(temp)
+	tmpl.Funcs(template.FuncMap{
+		"Deref": DeferRef[any],
+	})
 	buf := new(bytes.Buffer)
 	err := tmpl.Execute(buf, builder)
 	if err != nil {
@@ -222,6 +330,8 @@ extend type Query {
 	}
 	return buf.String()
 }
+
+func DeferRef[T any](i *T) T { return *i }
 
 func getArrayOfInterface[K comparable](v interface{}) []K {
 	aInterface := v.([]interface{})
@@ -234,7 +344,6 @@ func getArrayOfInterface[K comparable](v interface{}) []K {
 
 func customizeSqlBuilderQuery(s *SqlBuilderQuery, a *ast.Argument) error {
 	for _, e := range a.Value.Children {
-		log.Println("hier", e.Name)
 		v, _ := e.Value.Value(nil)
 		switch e.Name {
 		case "query":
@@ -304,45 +413,53 @@ func (ggs GqlGenSqlPlugin) InjectSourceEarly() *ast.Source {
 	}
 }
 
-func fillSqlBuilderByName(schema *ast.Schema, name string) *SqlBuilder {
-	val, ok := schema.Types[name]
-	if !ok {
-		log.Println("mhm warum passiert das ???", name)
-	}
+func fillSqlBuilderByName(schema *ast.Schema, name string, knownValues SqlBuilderRefs) {
+
+	val := schema.Types[name]
 	if val.BuiltIn {
-		return nil
+		return
 	}
-	res := NewSqlBuilder()
-	res.TypeName = val.Name
-	res.Fields = getSqlBuilderFields(val.Fields, schema)
-	return &res
+	if _, isOk := knownValues[val.Name]; isOk {
+		return
+	} else {
+		tmp := NewSqlBuilder()
+		tmp.TypeName = val.Name
+		knownValues[val.Name] = &tmp
+		f := getSqlBuilderFields(val.Fields, schema, knownValues)
+		tmp.Fields = f
+
+	}
 }
 
-func getSqlBuilderFields(fields ast.FieldList, schema *ast.Schema) []SqlBuilderField {
+func getSqlBuilderFields(fields ast.FieldList, schema *ast.Schema, knownValues SqlBuilderRefs) []SqlBuilderField {
 	res := make([]SqlBuilderField, 0)
 	for _, field := range fields {
 		res = append(res, SqlBuilderField{
 			Name:    field.Name,
 			GqlType: field.Type.Name(),
 			Primary: field.Directives.ForName(DirectiveSQLPrimary) != nil,
-			Ref:     fillSqlBuilderByName(schema, field.Type.Name()),
+			BuiltIn: schema.Types[field.Type.Name()].BuiltIn,
+			Raw:     field,
 		})
+		fillSqlBuilderByName(schema, field.Type.Name(), knownValues)
 	}
-	b, _ := json.Marshal(res)
-	log.Println("lalala", string(b))
 	return res
 }
 
 func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 	log.Println("InjectSourceLate")
-	builderList := make(SqlBuilderList, 0)
+	builderHandler := NewSqlBuilderHandler()
 	for _, c := range schema.Types {
-		log.Println("lalal", c.Name, c.BuiltIn)
 		if sqlDirective := c.Directives.ForName(DirectiveSQL); sqlDirective != nil {
 			// Has Trigger directive
 			builder := NewSqlBuilder()
 			builder.TypeName = c.Name
-			builder.Fields = getSqlBuilderFields(c.Fields, schema)
+			a := make(SqlBuilderRefs)
+			f := getSqlBuilderFields(c.Fields, schema, a)
+			builder.Fields = f
+			for k, v := range a {
+				builderHandler.Refs[k] = v
+			}
 			if a := sqlDirective.Arguments.ForName(ArgumentQuery); a != nil {
 				err := customizeSqlBuilderQuery(&builder.Query, a)
 				if err != nil {
@@ -353,10 +470,10 @@ func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 					panic(err)
 				}
 			}
-			builderList = append(builderList, builder)
+			builderHandler.List = append(builderHandler.List, builder)
 		}
 	}
-	result := getExtendsSource(builderList)
+	result := getExtendsSource(builderHandler)
 	log.Println(result)
 	return &ast.Source{
 		Name:    fmt.Sprintf("%s/gqlgenSql.graphql", ggs.Name()),

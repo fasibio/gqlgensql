@@ -9,16 +9,18 @@ type Cat @SQL(
    query: true
    directiveEtx: ["@validated"]
 }){
-  id: ID! 
+  id: ID!
   name: String!
+  owner: User! 
+  partner: User!
   description: String!
-  owner: User!
 }
 
 type Todo {
   id: ID!
   text: String!
   done: Boolean!
+  owner: User!
 }
 
 type User {
