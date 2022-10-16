@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -74,6 +75,11 @@ type ComplexityRoot struct {
 		NameMin        func(childComplexity int) int
 	}
 
+	CatFood struct {
+		Name  func(childComplexity int) int
+		Price func(childComplexity int) int
+	}
+
 	DeleteCatPayload struct {
 		Cat    func(childComplexity int, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) int
 		Msg    func(childComplexity int) int
@@ -94,6 +100,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddCat     func(childComplexity int, input []*model.AddCatInput) int
+		AddFood    func(childComplexity int, name string, price int) int
 		AddTodo    func(childComplexity int, input []*model.AddTodoInput) int
 		AddUser    func(childComplexity int, input []*model.AddUserInput) int
 		DeleteCat  func(childComplexity int, filter model.CatFilter) int
@@ -108,6 +115,7 @@ type ComplexityRoot struct {
 		AggregateCat  func(childComplexity int, filter *model.CatFilter) int
 		AggregateTodo func(childComplexity int, filter *model.TodoFilter) int
 		AggregateUser func(childComplexity int, filter *model.UserFilter) int
+		Catfoods      func(childComplexity int) int
 		GetCat        func(childComplexity int, id string) int
 		GetTodo       func(childComplexity int, id string) int
 		GetUser       func(childComplexity int, id string) int
@@ -161,6 +169,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	AddFood(ctx context.Context, name string, price int) (*model.CatFood, error)
 	AddCat(ctx context.Context, input []*model.AddCatInput) (*model.AddCatPayload, error)
 	UpdateCat(ctx context.Context, input model.UpdateCatInput) (*model.UpdateCatPayload, error)
 	DeleteCat(ctx context.Context, filter model.CatFilter) (*model.DeleteCatPayload, error)
@@ -172,6 +181,7 @@ type MutationResolver interface {
 	DeleteUser(ctx context.Context, filter model.UserFilter) (*model.DeleteUserPayload, error)
 }
 type QueryResolver interface {
+	Catfoods(ctx context.Context) ([]*model.CatFood, error)
 	GetCat(ctx context.Context, id string) (*model.Cat, error)
 	QueryCat(ctx context.Context, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error)
 	AggregateCat(ctx context.Context, filter *model.CatFilter) (*model.CatAggregateResult, error)
@@ -304,6 +314,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CatAggregateResult.NameMin(childComplexity), true
 
+	case "CatFood.name":
+		if e.complexity.CatFood.Name == nil {
+			break
+		}
+
+		return e.complexity.CatFood.Name(childComplexity), true
+
+	case "CatFood.price":
+		if e.complexity.CatFood.Price == nil {
+			break
+		}
+
+		return e.complexity.CatFood.Price(childComplexity), true
+
 	case "DeleteCatPayload.Cat":
 		if e.complexity.DeleteCatPayload.Cat == nil {
 			break
@@ -393,6 +417,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddCat(childComplexity, args["input"].([]*model.AddCatInput)), true
+
+	case "Mutation.addFood":
+		if e.complexity.Mutation.AddFood == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addFood_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddFood(childComplexity, args["name"].(string), args["price"].(int)), true
 
 	case "Mutation.addTodo":
 		if e.complexity.Mutation.AddTodo == nil {
@@ -525,6 +561,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.AggregateUser(childComplexity, args["filter"].(*model.UserFilter)), true
+
+	case "Query.catfoods":
+		if e.complexity.Query.Catfoods == nil {
+			break
+		}
+
+		return e.complexity.Query.Catfoods(childComplexity), true
 
 	case "Query.getCat":
 		if e.complexity.Query.GetCat == nil {
@@ -886,7 +929,18 @@ type User @SQL(){
   todos: [Todo]
 }
 
+type CatFood {
+  name: String!
+  price: Int!
+}
 
+type Query {
+  catfoods: [CatFood!]!
+}
+
+type Mutation {
+  addFood(name: String!, price: Int!): CatFood @validated
+}
 
 directive @validated on FIELD_DEFINITION`, BuiltIn: false},
 	{Name: "../../gqlgensql/directive.graphql", Input: `
@@ -1453,6 +1507,30 @@ func (ec *executionContext) field_Mutation_addCat_args(ctx context.Context, rawA
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addFood_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["price"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("price"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["price"] = arg1
 	return args, nil
 }
 
@@ -2688,6 +2766,94 @@ func (ec *executionContext) fieldContext_CatAggregateResult_descriptionMax(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _CatFood_name(ctx context.Context, field graphql.CollectedField, obj *model.CatFood) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CatFood_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CatFood_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatFood",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CatFood_price(ctx context.Context, field graphql.CollectedField, obj *model.CatFood) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CatFood_price(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Price, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CatFood_price(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatFood",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DeleteCatPayload_Cat(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCatPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DeleteCatPayload_Cat(ctx, field)
 	if err != nil {
@@ -3162,6 +3328,84 @@ func (ec *executionContext) fieldContext_DeleteUserPayload_msg(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addFood(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addFood(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddFood(rctx, fc.Args["name"].(string), fc.Args["price"].(int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Validated == nil {
+				return nil, errors.New("directive validated is not implemented")
+			}
+			return ec.directives.Validated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.CatFood); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.CatFood`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CatFood)
+	fc.Result = res
+	return ec.marshalOCatFood2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFood(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addFood(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_CatFood_name(ctx, field)
+			case "price":
+				return ec.fieldContext_CatFood_price(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatFood", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addFood_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -3684,6 +3928,56 @@ func (ec *executionContext) fieldContext_Mutation_deleteUser(ctx context.Context
 	if fc.Args, err = ec.field_Mutation_deleteUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_catfoods(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_catfoods(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Catfoods(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CatFood)
+	fc.Result = res
+	return ec.marshalNCatFood2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFoodᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_catfoods(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_CatFood_name(ctx, field)
+			case "price":
+				return ec.fieldContext_CatFood_price(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatFood", field.Name)
+		},
 	}
 	return fc, nil
 }
@@ -8506,6 +8800,41 @@ func (ec *executionContext) _CatAggregateResult(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var catFoodImplementors = []string{"CatFood"}
+
+func (ec *executionContext) _CatFood(ctx context.Context, sel ast.SelectionSet, obj *model.CatFood) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, catFoodImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CatFood")
+		case "name":
+
+			out.Values[i] = ec._CatFood_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "price":
+
+			out.Values[i] = ec._CatFood_price(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteCatPayloadImplementors = []string{"DeleteCatPayload"}
 
 func (ec *executionContext) _DeleteCatPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteCatPayload) graphql.Marshaler {
@@ -8624,6 +8953,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "addFood":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addFood(ctx, field)
+			})
+
 		case "addCat":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -8708,6 +9043,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "catfoods":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_catfoods(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getCat":
 			field := field
 
@@ -9571,6 +9929,60 @@ func (ec *executionContext) unmarshalNCatFilter2githubᚗcomᚋfasibioᚋgqlgens
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNCatFood2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFoodᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CatFood) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCatFood2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFood(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCatFood2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFood(ctx context.Context, sel ast.SelectionSet, v *model.CatFood) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CatFood(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -9578,6 +9990,21 @@ func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface
 
 func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -10044,6 +10471,13 @@ func (ec *executionContext) unmarshalOCatFilter2ᚖgithubᚗcomᚋfasibioᚋgqlg
 	}
 	res, err := ec.unmarshalInputCatFilter(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCatFood2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFood(ctx context.Context, sel ast.SelectionSet, v *model.CatFood) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CatFood(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCatHasFilter2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatHasFilter(ctx context.Context, v interface{}) ([]*model.CatHasFilter, error) {

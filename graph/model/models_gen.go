@@ -66,6 +66,11 @@ type CatFilter struct {
 	Not []*CatFilter    `json:"not"`
 }
 
+type CatFood struct {
+	Name  string `json:"name"`
+	Price int    `json:"price"`
+}
+
 type CatOrder struct {
 	Asc  *CatOrderable `json:"asc"`
 	Desc *CatOrderable `json:"desc"`

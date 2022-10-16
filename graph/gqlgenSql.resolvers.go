@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fasibio/gqlgensql/graph/generated"
 	"github.com/fasibio/gqlgensql/graph/model"
 )
 
@@ -100,12 +99,3 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilter,
 func (r *queryResolver) AggregateUser(ctx context.Context, filter *model.UserFilter) (*model.UserAggregateResult, error) {
 	panic(fmt.Errorf("not implemented: AggregateUser - aggregateUser"))
 }
-
-// Mutation returns generated.MutationResolver implementation.
-func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
-
-// Query returns generated.QueryResolver implementation.
-func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }

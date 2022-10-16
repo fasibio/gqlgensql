@@ -11,14 +11,14 @@ import (
 	"github.com/fasibio/gqlgensql/graph/model"
 )
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+// AddFood is the resolver for the addFood field.
+func (r *mutationResolver) AddFood(ctx context.Context, name string, price int) (*model.CatFood, error) {
+	panic(fmt.Errorf("not implemented: AddFood - addFood"))
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: Todos - todos"))
+// Catfoods is the resolver for the catfoods field.
+func (r *queryResolver) Catfoods(ctx context.Context) ([]*model.CatFood, error) {
+	panic(fmt.Errorf("not implemented: Catfoods - catfoods"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -30,6 +30,17 @@ type User @SQL(){
   todos: [Todo]
 }
 
+type CatFood {
+  name: String!
+  price: Int!
+}
 
+type Query {
+  catfoods: [CatFood!]!
+}
+
+type Mutation {
+  addFood(name: String!, price: Int!): CatFood @validated
+}
 
 directive @validated on FIELD_DEFINITION
