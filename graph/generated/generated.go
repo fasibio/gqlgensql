@@ -1208,10 +1208,7 @@ extend type Mutation {
 	addUser(input: [AddUserInput!]!): AddUserPayload
 	updateUser(input: UpdateUserInput!):  UpdateUserPayload
 	deleteUser(filter: UserFilter! ): DeleteUserPayload
-}
-
-
-	`, BuiltIn: true},
+}`, BuiltIn: true},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
