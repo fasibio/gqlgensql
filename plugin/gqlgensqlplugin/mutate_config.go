@@ -8,5 +8,6 @@ import (
 
 func (ggs GqlGenSqlPlugin) MutateConfig(cfg *config.Config) error {
 	log.Println("MutateConfig")
+	cfg.Resolver.
 	return nil
 }

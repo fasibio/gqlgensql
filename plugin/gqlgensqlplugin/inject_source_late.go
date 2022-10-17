@@ -42,11 +42,12 @@ func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 		}
 	}
 	result := getExtendsSource(builderHandler)
+	ggs.handler = builderHandler
 	log.Println(result)
 	return &ast.Source{
 		Name:    fmt.Sprintf("%s/gqlgenSql.graphql", ggs.Name()),
 		Input:   result,
-		BuiltIn: true,
+		BuiltIn: false,
 	}
 }
 

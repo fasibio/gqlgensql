@@ -7,6 +7,7 @@ const (
 )
 
 type GqlGenSqlPlugin struct {
+	handler SqlBuilderHandler
 }
 
 func (ggs GqlGenSqlPlugin) Name() string {
