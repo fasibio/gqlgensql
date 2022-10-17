@@ -9,7 +9,7 @@ import (
 //go:embed generate_code.go.tpl
 var generateCodeTemplate string
 
-func (ggs GqlGenSqlPlugin) GenerateCode(cfg *codegen.Data) error {
+func (ggs GqlGenSqlPlugin) GenerateCode(data *codegen.Data) error {
 	// filename := "blatest123.go"
 	// log.Println("GenerateCode")
 
@@ -24,6 +24,16 @@ func (ggs GqlGenSqlPlugin) GenerateCode(cfg *codegen.Data) error {
 	// 	Packages:        cfg.Config.Packages,
 	// 	Template:        generateCodeTemplate,
 	// })
+
+	// for _, o := range data.Objects {
+	// 	for _, f := range o.Fields {
+	// 		if !f.IsResolver {
+	// 			continue
+	// 		}
+
+	// 		f.im
+	// 	}
+	// }
 	return nil
 }
 
