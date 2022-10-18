@@ -7,7 +7,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (ggs GqlGenSqlPlugin) InjectSourceEarly() *ast.Source {
+func (ggs *GqlGenSqlPlugin) InjectSourceEarly() *ast.Source {
 	log.Println("InjectSourceEarly")
 
 	input := `

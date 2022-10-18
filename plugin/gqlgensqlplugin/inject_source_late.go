@@ -10,7 +10,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
+func (ggs *GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 	log.Println("InjectSourceLate")
 	builderHandler := NewSqlBuilderHandler()
 	for _, c := range schema.Types {
@@ -43,7 +43,7 @@ func (ggs GqlGenSqlPlugin) InjectSourceLate(schema *ast.Schema) *ast.Source {
 	}
 	result := getExtendsSource(builderHandler)
 	ggs.handler = builderHandler
-	log.Println(result)
+	// log.Println(result)
 	return &ast.Source{
 		Name:    fmt.Sprintf("%s/gqlgenSql.graphql", ggs.Name()),
 		Input:   result,
@@ -124,7 +124,7 @@ func getSqlBuilderFields(fields ast.FieldList, schema *ast.Schema, knownValues S
 		res = append(res, SqlBuilderField{
 			Name:    field.Name,
 			GqlType: field.Type.Name(),
-			Primary: field.Directives.ForName(DirectiveSQLPrimary) != nil,
+			Primary: field.Directives.ForName(DirectiveSQL) != nil,
 			BuiltIn: schema.Types[field.Type.Name()].BuiltIn,
 			Raw:     field,
 		})

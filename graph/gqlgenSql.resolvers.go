@@ -7,8 +7,39 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fasibio/gqlgensql/graph/generated"
 	"github.com/fasibio/gqlgensql/graph/model"
 )
+
+// Cat is the resolver for the Cat field.
+func (r *addCatPayloadResolver) Cat(ctx context.Context, obj *model.AddCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error) {
+	panic(fmt.Errorf("not implemented: Cat - Cat"))
+}
+
+// Todo is the resolver for the Todo field.
+func (r *addTodoPayloadResolver) Todo(ctx context.Context, obj *model.AddTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error) {
+	panic(fmt.Errorf("not implemented: Todo - Todo"))
+}
+
+// User is the resolver for the User field.
+func (r *addUserPayloadResolver) User(ctx context.Context, obj *model.AddUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - User"))
+}
+
+// Cat is the resolver for the Cat field.
+func (r *deleteCatPayloadResolver) Cat(ctx context.Context, obj *model.DeleteCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error) {
+	panic(fmt.Errorf("not implemented: Cat - Cat"))
+}
+
+// Todo is the resolver for the Todo field.
+func (r *deleteTodoPayloadResolver) Todo(ctx context.Context, obj *model.DeleteTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error) {
+	panic(fmt.Errorf("not implemented: Todo - Todo"))
+}
+
+// User is the resolver for the User field.
+func (r *deleteUserPayloadResolver) User(ctx context.Context, obj *model.DeleteUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - User"))
+}
 
 // AddCat is the resolver for the addCat field.
 func (r *mutationResolver) AddCat(ctx context.Context, input []*model.AddCatInput) (*model.AddCatPayload, error) {
@@ -99,3 +130,71 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilter,
 func (r *queryResolver) AggregateUser(ctx context.Context, filter *model.UserFilter) (*model.UserAggregateResult, error) {
 	panic(fmt.Errorf("not implemented: AggregateUser - aggregateUser"))
 }
+
+// Cat is the resolver for the Cat field.
+func (r *updateCatPayloadResolver) Cat(ctx context.Context, obj *model.UpdateCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error) {
+	panic(fmt.Errorf("not implemented: Cat - Cat"))
+}
+
+// Todo is the resolver for the Todo field.
+func (r *updateTodoPayloadResolver) Todo(ctx context.Context, obj *model.UpdateTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error) {
+	panic(fmt.Errorf("not implemented: Todo - Todo"))
+}
+
+// User is the resolver for the User field.
+func (r *updateUserPayloadResolver) User(ctx context.Context, obj *model.UpdateUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented: User - User"))
+}
+
+// AddCatPayload returns generated.AddCatPayloadResolver implementation.
+func (r *Resolver) AddCatPayload() generated.AddCatPayloadResolver { return &addCatPayloadResolver{r} }
+
+// AddTodoPayload returns generated.AddTodoPayloadResolver implementation.
+func (r *Resolver) AddTodoPayload() generated.AddTodoPayloadResolver {
+	return &addTodoPayloadResolver{r}
+}
+
+// AddUserPayload returns generated.AddUserPayloadResolver implementation.
+func (r *Resolver) AddUserPayload() generated.AddUserPayloadResolver {
+	return &addUserPayloadResolver{r}
+}
+
+// DeleteCatPayload returns generated.DeleteCatPayloadResolver implementation.
+func (r *Resolver) DeleteCatPayload() generated.DeleteCatPayloadResolver {
+	return &deleteCatPayloadResolver{r}
+}
+
+// DeleteTodoPayload returns generated.DeleteTodoPayloadResolver implementation.
+func (r *Resolver) DeleteTodoPayload() generated.DeleteTodoPayloadResolver {
+	return &deleteTodoPayloadResolver{r}
+}
+
+// DeleteUserPayload returns generated.DeleteUserPayloadResolver implementation.
+func (r *Resolver) DeleteUserPayload() generated.DeleteUserPayloadResolver {
+	return &deleteUserPayloadResolver{r}
+}
+
+// UpdateCatPayload returns generated.UpdateCatPayloadResolver implementation.
+func (r *Resolver) UpdateCatPayload() generated.UpdateCatPayloadResolver {
+	return &updateCatPayloadResolver{r}
+}
+
+// UpdateTodoPayload returns generated.UpdateTodoPayloadResolver implementation.
+func (r *Resolver) UpdateTodoPayload() generated.UpdateTodoPayloadResolver {
+	return &updateTodoPayloadResolver{r}
+}
+
+// UpdateUserPayload returns generated.UpdateUserPayloadResolver implementation.
+func (r *Resolver) UpdateUserPayload() generated.UpdateUserPayloadResolver {
+	return &updateUserPayloadResolver{r}
+}
+
+type addCatPayloadResolver struct{ *Resolver }
+type addTodoPayloadResolver struct{ *Resolver }
+type addUserPayloadResolver struct{ *Resolver }
+type deleteCatPayloadResolver struct{ *Resolver }
+type deleteTodoPayloadResolver struct{ *Resolver }
+type deleteUserPayloadResolver struct{ *Resolver }
+type updateCatPayloadResolver struct{ *Resolver }
+type updateTodoPayloadResolver struct{ *Resolver }
+type updateUserPayloadResolver struct{ *Resolver }

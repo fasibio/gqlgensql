@@ -1,5 +1,7 @@
 package gqlgensqlplugin
 
+import "log"
+
 const (
 	DirectiveSQL        = "SQL"
 	DirectiveSQLPrimary = "SQL_PRIMARY"
@@ -10,6 +12,11 @@ type GqlGenSqlPlugin struct {
 	handler SqlBuilderHandler
 }
 
-func (ggs GqlGenSqlPlugin) Name() string {
+func NewGqlGenSqlPlugin() GqlGenSqlPlugin {
+	log.Println("asddsa")
+	return GqlGenSqlPlugin{}
+}
+
+func (ggs *GqlGenSqlPlugin) Name() string {
 	return "gqlgensql"
 }

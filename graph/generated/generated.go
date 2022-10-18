@@ -36,14 +36,21 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AddCatPayload() AddCatPayloadResolver
+	AddTodoPayload() AddTodoPayloadResolver
+	AddUserPayload() AddUserPayloadResolver
+	DeleteCatPayload() DeleteCatPayloadResolver
+	DeleteTodoPayload() DeleteTodoPayloadResolver
+	DeleteUserPayload() DeleteUserPayloadResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	UpdateCatPayload() UpdateCatPayloadResolver
+	UpdateTodoPayload() UpdateTodoPayloadResolver
+	UpdateUserPayload() UpdateUserPayloadResolver
 }
 
 type DirectiveRoot struct {
-	SQL         func(ctx context.Context, obj interface{}, next graphql.Resolver, query *model.SQLQueryParams, mutation *model.SQLMutationParams) (res interface{}, err error)
-	SQL_PRIMARY func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
-	Validated   func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	Validated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -168,6 +175,24 @@ type ComplexityRoot struct {
 	}
 }
 
+type AddCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.AddCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error)
+}
+type AddTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.AddTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error)
+}
+type AddUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.AddUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error)
+}
+type DeleteCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.DeleteCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error)
+}
+type DeleteTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.DeleteTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error)
+}
+type DeleteUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.DeleteUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error)
+}
 type MutationResolver interface {
 	AddFood(ctx context.Context, name string, price int) (*model.CatFood, error)
 	AddCat(ctx context.Context, input []*model.AddCatInput) (*model.AddCatPayload, error)
@@ -191,6 +216,15 @@ type QueryResolver interface {
 	GetUser(ctx context.Context, id string) (*model.User, error)
 	QueryUser(ctx context.Context, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error)
 	AggregateUser(ctx context.Context, filter *model.UserFilter) (*model.UserAggregateResult, error)
+}
+type UpdateCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.UpdateCatPayload, filter *model.CatFilter, order *model.CatOrder, first *int, offset *int) ([]*model.Cat, error)
+}
+type UpdateTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.UpdateTodoPayload, filter *model.TodoFilter, order *model.TodoOrder, first *int, offset *int) ([]*model.Todo, error)
+}
+type UpdateUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.UpdateUserPayload, filter *model.UserFilter, order *model.UserOrder, first *int, offset *int) ([]*model.User, error)
 }
 
 type executableSchema struct {
@@ -1216,30 +1250,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) dir_SQL_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *model.SQLQueryParams
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-		arg0, err = ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg0
-	var arg1 *model.SQLMutationParams
-	if tmp, ok := rawArgs["mutation"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("mutation"))
-		arg1, err = ec.unmarshalOSqlMutationParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLMutationParams(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["mutation"] = arg1
-	return args, nil
-}
-
 func (ec *executionContext) field_AddCatPayload_Cat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2059,32 +2069,8 @@ func (ec *executionContext) _AddCatPayload_Cat(ctx context.Context, field graphq
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Cat, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			query, err := ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, map[string]interface{}{"aggregate": true, "directiveEtx": []interface{}{"@validated"}, "get": true, "query": true})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, query, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.Cat); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.Cat`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AddCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFilter), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2102,8 +2088,8 @@ func (ec *executionContext) fieldContext_AddCatPayload_Cat(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "AddCatPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -2148,7 +2134,7 @@ func (ec *executionContext) _AddTodoPayload_Todo(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todo, nil
+		return ec.resolvers.AddTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFilter), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2166,8 +2152,8 @@ func (ec *executionContext) fieldContext_AddTodoPayload_Todo(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "AddTodoPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -2209,28 +2195,8 @@ func (ec *executionContext) _AddUserPayload_User(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.User, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AddUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFilter), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2248,8 +2214,8 @@ func (ec *executionContext) fieldContext_AddUserPayload_User(ctx context.Context
 	fc = &graphql.FieldContext{
 		Object:     "AddUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -2379,28 +2345,8 @@ func (ec *executionContext) _Cat_owner(ctx context.Context, field graphql.Collec
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Owner, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return obj.Owner, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2453,28 +2399,8 @@ func (ec *executionContext) _Cat_partner(ctx context.Context, field graphql.Coll
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Partner, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return obj.Partner, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2864,32 +2790,8 @@ func (ec *executionContext) _DeleteCatPayload_Cat(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Cat, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			query, err := ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, map[string]interface{}{"aggregate": true, "directiveEtx": []interface{}{"@validated"}, "get": true, "query": true})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, query, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.Cat); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.Cat`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DeleteCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFilter), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2907,8 +2809,8 @@ func (ec *executionContext) fieldContext_DeleteCatPayload_Cat(ctx context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "DeleteCatPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -3035,7 +2937,7 @@ func (ec *executionContext) _DeleteTodoPayload_Todo(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todo, nil
+		return ec.resolvers.DeleteTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFilter), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3053,8 +2955,8 @@ func (ec *executionContext) fieldContext_DeleteTodoPayload_Todo(ctx context.Cont
 	fc = &graphql.FieldContext{
 		Object:     "DeleteTodoPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -3178,28 +3080,8 @@ func (ec *executionContext) _DeleteUserPayload_User(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.User, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DeleteUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFilter), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3217,8 +3099,8 @@ func (ec *executionContext) fieldContext_DeleteUserPayload_User(ctx context.Cont
 	fc = &graphql.FieldContext{
 		Object:     "DeleteUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -3997,23 +3879,13 @@ func (ec *executionContext) _Query_getCat(ctx context.Context, field graphql.Col
 			return ec.resolvers.Query().GetCat(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			query, err := ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, map[string]interface{}{"aggregate": true, "directiveEtx": []interface{}{"@validated"}, "get": true, "query": true})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, nil, directive0, query, nil)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Validated == nil {
 				return nil, errors.New("directive validated is not implemented")
 			}
-			return ec.directives.Validated(ctx, nil, directive1)
+			return ec.directives.Validated(ctx, nil, directive0)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
@@ -4091,23 +3963,13 @@ func (ec *executionContext) _Query_queryCat(ctx context.Context, field graphql.C
 			return ec.resolvers.Query().QueryCat(rctx, fc.Args["filter"].(*model.CatFilter), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			query, err := ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, map[string]interface{}{"aggregate": true, "directiveEtx": []interface{}{"@validated"}, "get": true, "query": true})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, nil, directive0, query, nil)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Validated == nil {
 				return nil, errors.New("directive validated is not implemented")
 			}
-			return ec.directives.Validated(ctx, nil, directive1)
+			return ec.directives.Validated(ctx, nil, directive0)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
@@ -4448,28 +4310,8 @@ func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().GetUser(rctx, fc.Args["id"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, nil, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUser(rctx, fc.Args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4530,28 +4372,8 @@ func (ec *executionContext) _Query_queryUser(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().QueryUser(rctx, fc.Args["filter"].(*model.UserFilter), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, nil, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().QueryUser(rctx, fc.Args["filter"].(*model.UserFilter), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4937,28 +4759,8 @@ func (ec *executionContext) _Todo_owner(ctx context.Context, field graphql.Colle
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Owner, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return obj.Owner, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5134,32 +4936,8 @@ func (ec *executionContext) _UpdateCatPayload_Cat(ctx context.Context, field gra
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.Cat, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			query, err := ec.unmarshalOSqlQueryParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLQueryParams(ctx, map[string]interface{}{"aggregate": true, "directiveEtx": []interface{}{"@validated"}, "get": true, "query": true})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, query, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.Cat); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.Cat`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UpdateCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFilter), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5177,8 +4955,8 @@ func (ec *executionContext) fieldContext_UpdateCatPayload_Cat(ctx context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "UpdateCatPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -5264,7 +5042,7 @@ func (ec *executionContext) _UpdateTodoPayload_Todo(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Todo, nil
+		return ec.resolvers.UpdateTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFilter), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5282,8 +5060,8 @@ func (ec *executionContext) fieldContext_UpdateTodoPayload_Todo(ctx context.Cont
 	fc = &graphql.FieldContext{
 		Object:     "UpdateTodoPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -5366,28 +5144,8 @@ func (ec *executionContext) _UpdateUserPayload_User(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return obj.User, nil
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.SQL == nil {
-				return nil, errors.New("directive SQL is not implemented")
-			}
-			return ec.directives.SQL(ctx, obj, directive0, nil, nil)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*model.User); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*github.com/fasibio/gqlgensql/graph/model.User`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UpdateUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFilter), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5405,8 +5163,8 @@ func (ec *executionContext) fieldContext_UpdateUserPayload_User(ctx context.Cont
 	fc = &graphql.FieldContext{
 		Object:     "UpdateUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -8636,9 +8394,22 @@ func (ec *executionContext) _AddCatPayload(ctx context.Context, sel ast.Selectio
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AddCatPayload")
 		case "Cat":
+			field := field
 
-			out.Values[i] = ec._AddCatPayload_Cat(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddCatPayload_Cat(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8661,9 +8432,22 @@ func (ec *executionContext) _AddTodoPayload(ctx context.Context, sel ast.Selecti
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AddTodoPayload")
 		case "Todo":
+			field := field
 
-			out.Values[i] = ec._AddTodoPayload_Todo(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddTodoPayload_Todo(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8686,9 +8470,22 @@ func (ec *executionContext) _AddUserPayload(ctx context.Context, sel ast.Selecti
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AddUserPayload")
 		case "User":
+			field := field
 
-			out.Values[i] = ec._AddUserPayload_User(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddUserPayload_User(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8843,9 +8640,22 @@ func (ec *executionContext) _DeleteCatPayload(ctx context.Context, sel ast.Selec
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DeleteCatPayload")
 		case "Cat":
+			field := field
 
-			out.Values[i] = ec._DeleteCatPayload_Cat(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteCatPayload_Cat(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._DeleteCatPayload_numIds(ctx, field, obj)
@@ -8876,9 +8686,22 @@ func (ec *executionContext) _DeleteTodoPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DeleteTodoPayload")
 		case "Todo":
+			field := field
 
-			out.Values[i] = ec._DeleteTodoPayload_Todo(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteTodoPayload_Todo(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._DeleteTodoPayload_numIds(ctx, field, obj)
@@ -8909,9 +8732,22 @@ func (ec *executionContext) _DeleteUserPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DeleteUserPayload")
 		case "User":
+			field := field
 
-			out.Values[i] = ec._DeleteUserPayload_User(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteUserPayload_User(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._DeleteUserPayload_numIds(ctx, field, obj)
@@ -9359,9 +9195,22 @@ func (ec *executionContext) _UpdateCatPayload(ctx context.Context, sel ast.Selec
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateCatPayload")
 		case "Cat":
+			field := field
 
-			out.Values[i] = ec._UpdateCatPayload_Cat(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateCatPayload_Cat(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._UpdateCatPayload_numIds(ctx, field, obj)
@@ -9388,9 +9237,22 @@ func (ec *executionContext) _UpdateTodoPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateTodoPayload")
 		case "Todo":
+			field := field
 
-			out.Values[i] = ec._UpdateTodoPayload_Todo(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateTodoPayload_Todo(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._UpdateTodoPayload_numIds(ctx, field, obj)
@@ -9417,9 +9279,22 @@ func (ec *executionContext) _UpdateUserPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateUserPayload")
 		case "User":
+			field := field
 
-			out.Values[i] = ec._UpdateUserPayload_User(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateUserPayload_User(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "numIds":
 
 			out.Values[i] = ec._UpdateUserPayload_numIds(ctx, field, obj)
