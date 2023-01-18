@@ -8,17 +8,16 @@ import (
 	"fmt"
 
 	"github.com/fasibio/gqlgensql/graph/generated"
-	"github.com/fasibio/gqlgensql/graph/model"
 )
 
-// AddFood is the resolver for the addFood field.
-func (r *mutationResolver) AddFood(ctx context.Context, name string, price int) (*model.CatFood, error) {
-	panic(fmt.Errorf("not implemented: AddFood - addFood"))
+// B is the resolver for the b field.
+func (r *mutationResolver) B(ctx context.Context) (*int, error) {
+	panic(fmt.Errorf("not implemented: B - b"))
 }
 
-// Catfoods is the resolver for the catfoods field.
-func (r *queryResolver) Catfoods(ctx context.Context) ([]*model.CatFood, error) {
-	panic(fmt.Errorf("not implemented: Catfoods - catfoods"))
+// A is the resolver for the a field.
+func (r *queryResolver) A(ctx context.Context) (*string, error) {
+	panic(fmt.Errorf("not implemented: A - a"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

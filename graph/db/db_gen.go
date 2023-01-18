@@ -8,7 +8,7 @@ import (
 )
 
 type GqlGenSqlDB struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
 func NewGqlGenSqlDB(db *gorm.DB) GqlGenSqlDB {
@@ -16,5 +16,5 @@ func NewGqlGenSqlDB(db *gorm.DB) GqlGenSqlDB {
 }
 
 func (db *GqlGenSqlDB) Init() {
-	db.db.AutoMigrate(&model.Todo{}, &model.User{}, &model.Cat{})
+	db.Db.AutoMigrate(&model.Company{}, &model.User{})
 }

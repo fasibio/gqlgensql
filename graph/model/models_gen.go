@@ -8,99 +8,115 @@ import (
 	"strconv"
 )
 
-type AddCatInput struct {
-	ID          string   `json:"id"`
-	Name        string   `json:"name"`
-	Owner       *UserRef `json:"owner"`
-	Partner     *UserRef `json:"partner"`
-	Description string   `json:"description"`
-}
-
-type AddCatPayload struct {
-	Cat []*Cat `json:"Cat"`
-}
-
-type AddTodoInput struct {
-	ID    string   `json:"id"`
-	Text  string   `json:"text"`
-	Done  bool     `json:"done"`
-	Owner *UserRef `json:"owner"`
-}
-
-type AddTodoPayload struct {
-	Todo []*Todo `json:"Todo"`
-}
-
-type AddUserInput struct {
-	ID    string     `json:"id"`
-	Name  string     `json:"name"`
-	Test  string     `json:"test"`
-	Todos []*TodoRef `json:"todos"`
+type AddCompanyPayload struct {
+	Company []*Company `json:"company"`
 }
 
 type AddUserPayload struct {
-	User []*User `json:"User"`
+	User []*User `json:"user"`
 }
 
-type Cat struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	Owner       *User  `json:"owner"`
-	Partner     *User  `json:"partner"`
-	Description string `json:"description"`
+type BooleanFilterInput struct {
+	And     []*bool             `json:"and"`
+	Or      []*bool             `json:"or"`
+	Not     *BooleanFilterInput `json:"not"`
+	Is      *bool               `json:"is"`
+	Null    *bool               `json:"null"`
+	NotNull *bool               `json:"notNull"`
 }
 
-type CatAggregateResult struct {
-	Count          *int    `json:"count"`
-	NameMin        *string `json:"nameMin"`
-	NameMax        *string `json:"nameMax"`
-	DescriptionMin *string `json:"descriptionMin"`
-	DescriptionMax *string `json:"descriptionMax"`
+type Company struct {
+	ID              int      `json:"id" gorm:"primaryKey"`
+	Name            string   `json:"Name"`
+	MotherCompanyID *int     `json:"motherCompanyID"`
+	MotherCompany   *Company `json:"motherCompany"`
 }
 
-type CatFilter struct {
-	ID  []string        `json:"id"`
-	Has []*CatHasFilter `json:"has"`
-	And []*CatFilter    `json:"and"`
-	Or  []*CatFilter    `json:"or"`
-	Not []*CatFilter    `json:"not"`
+type CompanyFiltersInput struct {
+	ID              *IntFilterInput        `json:"id"`
+	Name            *StringFilterInput     `json:"Name"`
+	MotherCompanyID *IntFilterInput        `json:"motherCompanyID"`
+	MotherCompany   *CompanyFiltersInput   `json:"motherCompany"`
+	And             []*CompanyFiltersInput `json:"and"`
+	Or              []*CompanyFiltersInput `json:"or"`
+	Not             *CompanyFiltersInput   `json:"not"`
 }
 
-type CatFood struct {
-	Name  string `json:"name"`
-	Price int    `json:"price"`
+type CompanyInput struct {
+	ID              int           `json:"id"`
+	Name            string        `json:"Name"`
+	MotherCompanyID *int          `json:"motherCompanyID"`
+	MotherCompany   *CompanyInput `json:"motherCompany"`
 }
 
-type CatOrder struct {
-	Asc  *CatOrderable `json:"asc"`
-	Desc *CatOrderable `json:"desc"`
-	Then *CatOrder     `json:"then"`
+type CompanyOrder struct {
+	Asc  *CompanyOrderable `json:"asc"`
+	Desc *CompanyOrderable `json:"desc"`
 }
 
-type CatPatch struct {
-	ID          *string  `json:"id"`
-	Name        *string  `json:"name"`
-	Owner       *UserRef `json:"owner"`
-	Partner     *UserRef `json:"partner"`
-	Description *string  `json:"description"`
+type CompanyPatch struct {
+	ID              *int          `json:"id"`
+	Name            *string       `json:"Name"`
+	MotherCompanyID *int          `json:"motherCompanyID"`
+	MotherCompany   *CompanyPatch `json:"motherCompany"`
 }
 
-type DeleteCatPayload struct {
-	Cat    []*Cat  `json:"Cat"`
-	NumIds *int    `json:"numIds"`
-	Msg    *string `json:"msg"`
+type CompanyQueryResult struct {
+	Data       []*Company `json:"data"`
+	Count      int        `json:"count"`
+	TotalCount int        `json:"totalCount"`
 }
 
-type DeleteTodoPayload struct {
-	Todo   []*Todo `json:"Todo"`
-	NumIds *int    `json:"numIds"`
-	Msg    *string `json:"msg"`
+type CompanyWhere struct {
+	ID              *int    `json:"id"`
+	Name            *string `json:"Name"`
+	MotherCompanyID *int    `json:"motherCompanyID"`
+}
+
+type DeleteCompanyPayload struct {
+	Company []*Company `json:"company"`
+	Count   int        `json:"count"`
+	Msg     *string    `json:"msg"`
 }
 
 type DeleteUserPayload struct {
-	User   []*User `json:"User"`
-	NumIds *int    `json:"numIds"`
-	Msg    *string `json:"msg"`
+	User  []*User `json:"user"`
+	Count int     `json:"count"`
+	Msg   *string `json:"msg"`
+}
+
+type IDFilterInput struct {
+	And     []*string      `json:"and"`
+	Or      []*string      `json:"or"`
+	Not     *IDFilterInput `json:"not"`
+	Eq      *string        `json:"eq"`
+	Ne      *string        `json:"ne"`
+	Null    *bool          `json:"null"`
+	NotNull *bool          `json:"notNull"`
+	In      []*string      `json:"in"`
+	Notin   []*string      `json:"notin"`
+}
+
+type IntFilterBetween struct {
+	Start int `json:"start"`
+	End   int `json:"end"`
+}
+
+type IntFilterInput struct {
+	And     []*int            `json:"and"`
+	Or      []*int            `json:"or"`
+	Not     *IntFilterInput   `json:"not"`
+	Eq      *int              `json:"eq"`
+	Ne      *int              `json:"ne"`
+	Gt      *int              `json:"gt"`
+	Gte     *int              `json:"gte"`
+	Lt      *int              `json:"lt"`
+	Lte     *int              `json:"lte"`
+	Null    *bool             `json:"null"`
+	NotNull *bool             `json:"notNull"`
+	In      []*int            `json:"in"`
+	NotIn   []*int            `json:"notIn"`
+	Between *IntFilterBetween `json:"between"`
 }
 
 type SQLMutationParams struct {
@@ -113,359 +129,158 @@ type SQLMutationParams struct {
 type SQLQueryParams struct {
 	Get          *bool    `json:"get"`
 	Query        *bool    `json:"query"`
-	Aggregate    *bool    `json:"aggregate"`
 	DirectiveEtx []string `json:"directiveEtx"`
 }
 
-type Todo struct {
-	ID    string `json:"id"`
-	Text  string `json:"text"`
-	Done  bool   `json:"done"`
-	Owner *User  `json:"owner"`
+type StringFilterInput struct {
+	And          []*string          `json:"and"`
+	Or           []*string          `json:"or"`
+	Not          *StringFilterInput `json:"not"`
+	Eq           *string            `json:"eq"`
+	Eqi          *string            `json:"eqi"`
+	Ne           *string            `json:"ne"`
+	StartsWith   *string            `json:"startsWith"`
+	EndsWith     *string            `json:"endsWith"`
+	Contains     *string            `json:"contains"`
+	NotContains  *string            `json:"notContains"`
+	Containsi    *string            `json:"containsi"`
+	NotContainsi *string            `json:"notContainsi"`
+	Null         *bool              `json:"null"`
+	NotNull      *bool              `json:"notNull"`
+	In           []*string          `json:"in"`
+	NotIn        []*string          `json:"notIn"`
 }
 
-type TodoAggregateResult struct {
-	Count   *int    `json:"count"`
-	TextMin *string `json:"textMin"`
-	TextMax *string `json:"textMax"`
+type UpdateCompanyInput struct {
+	Filter *CompanyFiltersInput `json:"filter"`
+	Set    *CompanyPatch        `json:"set"`
+	Remove *CompanyPatch        `json:"remove"`
 }
 
-type TodoFilter struct {
-	ID  []string         `json:"id"`
-	Has []*TodoHasFilter `json:"has"`
-	And []*TodoFilter    `json:"and"`
-	Or  []*TodoFilter    `json:"or"`
-	Not []*TodoFilter    `json:"not"`
-}
-
-type TodoOrder struct {
-	Asc  *TodoOrderable `json:"asc"`
-	Desc *TodoOrderable `json:"desc"`
-	Then *TodoOrder     `json:"then"`
-}
-
-type TodoPatch struct {
-	ID    *string  `json:"id"`
-	Text  *string  `json:"text"`
-	Done  *bool    `json:"done"`
-	Owner *UserRef `json:"owner"`
-}
-
-type TodoRef struct {
-	ID    *string  `json:"id"`
-	Text  *string  `json:"text"`
-	Done  *bool    `json:"done"`
-	Owner *UserRef `json:"owner"`
-}
-
-type UpdateCatInput struct {
-	Filter *CatFilter `json:"filter"`
-	Set    *CatPatch  `json:"set"`
-	Remove *CatPatch  `json:"remove"`
-}
-
-type UpdateCatPayload struct {
-	Cat    []*Cat `json:"Cat"`
-	NumIds *int   `json:"numIds"`
-}
-
-type UpdateTodoInput struct {
-	Filter *TodoFilter `json:"filter"`
-	Set    *TodoPatch  `json:"set"`
-	Remove *TodoPatch  `json:"remove"`
-}
-
-type UpdateTodoPayload struct {
-	Todo   []*Todo `json:"Todo"`
-	NumIds *int    `json:"numIds"`
+type UpdateCompanyPayload struct {
+	Company []*Company `json:"company"`
+	Count   int        `json:"count"`
 }
 
 type UpdateUserInput struct {
-	Filter *UserFilter `json:"filter"`
-	Set    *UserPatch  `json:"set"`
-	Remove *UserPatch  `json:"remove"`
+	Filter *UserFiltersInput `json:"filter"`
+	Set    *UserPatch        `json:"set"`
+	Remove *UserPatch        `json:"remove"`
 }
 
 type UpdateUserPayload struct {
-	User   []*User `json:"User"`
-	NumIds *int    `json:"numIds"`
+	User  []*User `json:"user"`
+	Count int     `json:"count"`
 }
 
 type User struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Test  string  `json:"test"`
-	Todos []*Todo `json:"todos"`
+	ID        int      `json:"id" gorm:"primaryKey"`
+	Name      string   `json:"name"`
+	CompanyID *int     `json:"companyID"`
+	Company   *Company `json:"company"`
 }
 
-type UserAggregateResult struct {
-	Count   *int    `json:"count"`
-	NameMin *string `json:"nameMin"`
-	NameMax *string `json:"nameMax"`
-	TestMin *string `json:"testMin"`
-	TestMax *string `json:"testMax"`
+type UserFiltersInput struct {
+	ID        *IntFilterInput      `json:"id"`
+	Name      *StringFilterInput   `json:"name"`
+	CompanyID *IntFilterInput      `json:"companyID"`
+	Company   *CompanyFiltersInput `json:"company"`
+	And       []*UserFiltersInput  `json:"and"`
+	Or        []*UserFiltersInput  `json:"or"`
+	Not       *UserFiltersInput    `json:"not"`
 }
 
-type UserFilter struct {
-	ID  []string         `json:"id"`
-	Has []*UserHasFilter `json:"has"`
-	And []*UserFilter    `json:"and"`
-	Or  []*UserFilter    `json:"or"`
-	Not []*UserFilter    `json:"not"`
+type UserInput struct {
+	ID        int           `json:"id"`
+	Name      string        `json:"name"`
+	CompanyID *int          `json:"companyID"`
+	Company   *CompanyInput `json:"company"`
 }
 
 type UserOrder struct {
 	Asc  *UserOrderable `json:"asc"`
 	Desc *UserOrderable `json:"desc"`
-	Then *UserOrder     `json:"then"`
 }
 
 type UserPatch struct {
-	ID    *string    `json:"id"`
-	Name  *string    `json:"name"`
-	Test  *string    `json:"test"`
-	Todos []*TodoRef `json:"todos"`
+	ID        *int          `json:"id"`
+	Name      *string       `json:"name"`
+	CompanyID *int          `json:"companyID"`
+	Company   *CompanyPatch `json:"company"`
 }
 
-type UserRef struct {
-	ID    *string    `json:"id"`
-	Name  *string    `json:"name"`
-	Test  *string    `json:"test"`
-	Todos []*TodoRef `json:"todos"`
+type UserQueryResult struct {
+	Data       []*User `json:"data"`
+	Count      int     `json:"count"`
+	TotalCount int     `json:"totalCount"`
 }
 
-type CatHasFilter string
+type UserWhere struct {
+	ID        *int    `json:"id"`
+	Name      *string `json:"name"`
+	CompanyID *int    `json:"companyID"`
+}
+
+type CompanyOrderable string
 
 const (
-	CatHasFilterID          CatHasFilter = "id"
-	CatHasFilterName        CatHasFilter = "name"
-	CatHasFilterOwner       CatHasFilter = "owner"
-	CatHasFilterPartner     CatHasFilter = "partner"
-	CatHasFilterDescription CatHasFilter = "description"
+	CompanyOrderableID              CompanyOrderable = "id"
+	CompanyOrderableName            CompanyOrderable = "Name"
+	CompanyOrderableMotherCompanyID CompanyOrderable = "motherCompanyID"
 )
 
-var AllCatHasFilter = []CatHasFilter{
-	CatHasFilterID,
-	CatHasFilterName,
-	CatHasFilterOwner,
-	CatHasFilterPartner,
-	CatHasFilterDescription,
+var AllCompanyOrderable = []CompanyOrderable{
+	CompanyOrderableID,
+	CompanyOrderableName,
+	CompanyOrderableMotherCompanyID,
 }
 
-func (e CatHasFilter) IsValid() bool {
+func (e CompanyOrderable) IsValid() bool {
 	switch e {
-	case CatHasFilterID, CatHasFilterName, CatHasFilterOwner, CatHasFilterPartner, CatHasFilterDescription:
+	case CompanyOrderableID, CompanyOrderableName, CompanyOrderableMotherCompanyID:
 		return true
 	}
 	return false
 }
 
-func (e CatHasFilter) String() string {
+func (e CompanyOrderable) String() string {
 	return string(e)
 }
 
-func (e *CatHasFilter) UnmarshalGQL(v interface{}) error {
+func (e *CompanyOrderable) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = CatHasFilter(str)
+	*e = CompanyOrderable(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid CatHasFilter", str)
+		return fmt.Errorf("%s is not a valid CompanyOrderable", str)
 	}
 	return nil
 }
 
-func (e CatHasFilter) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type CatOrderable string
-
-const (
-	CatOrderableName        CatOrderable = "name"
-	CatOrderableDescription CatOrderable = "description"
-)
-
-var AllCatOrderable = []CatOrderable{
-	CatOrderableName,
-	CatOrderableDescription,
-}
-
-func (e CatOrderable) IsValid() bool {
-	switch e {
-	case CatOrderableName, CatOrderableDescription:
-		return true
-	}
-	return false
-}
-
-func (e CatOrderable) String() string {
-	return string(e)
-}
-
-func (e *CatOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = CatOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid CatOrderable", str)
-	}
-	return nil
-}
-
-func (e CatOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TodoHasFilter string
-
-const (
-	TodoHasFilterID    TodoHasFilter = "id"
-	TodoHasFilterText  TodoHasFilter = "text"
-	TodoHasFilterDone  TodoHasFilter = "done"
-	TodoHasFilterOwner TodoHasFilter = "owner"
-)
-
-var AllTodoHasFilter = []TodoHasFilter{
-	TodoHasFilterID,
-	TodoHasFilterText,
-	TodoHasFilterDone,
-	TodoHasFilterOwner,
-}
-
-func (e TodoHasFilter) IsValid() bool {
-	switch e {
-	case TodoHasFilterID, TodoHasFilterText, TodoHasFilterDone, TodoHasFilterOwner:
-		return true
-	}
-	return false
-}
-
-func (e TodoHasFilter) String() string {
-	return string(e)
-}
-
-func (e *TodoHasFilter) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TodoHasFilter(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TodoHasFilter", str)
-	}
-	return nil
-}
-
-func (e TodoHasFilter) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TodoOrderable string
-
-const (
-	TodoOrderableText TodoOrderable = "text"
-)
-
-var AllTodoOrderable = []TodoOrderable{
-	TodoOrderableText,
-}
-
-func (e TodoOrderable) IsValid() bool {
-	switch e {
-	case TodoOrderableText:
-		return true
-	}
-	return false
-}
-
-func (e TodoOrderable) String() string {
-	return string(e)
-}
-
-func (e *TodoOrderable) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TodoOrderable(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TodoOrderable", str)
-	}
-	return nil
-}
-
-func (e TodoOrderable) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type UserHasFilter string
-
-const (
-	UserHasFilterID    UserHasFilter = "id"
-	UserHasFilterName  UserHasFilter = "name"
-	UserHasFilterTest  UserHasFilter = "test"
-	UserHasFilterTodos UserHasFilter = "todos"
-)
-
-var AllUserHasFilter = []UserHasFilter{
-	UserHasFilterID,
-	UserHasFilterName,
-	UserHasFilterTest,
-	UserHasFilterTodos,
-}
-
-func (e UserHasFilter) IsValid() bool {
-	switch e {
-	case UserHasFilterID, UserHasFilterName, UserHasFilterTest, UserHasFilterTodos:
-		return true
-	}
-	return false
-}
-
-func (e UserHasFilter) String() string {
-	return string(e)
-}
-
-func (e *UserHasFilter) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = UserHasFilter(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid UserHasFilter", str)
-	}
-	return nil
-}
-
-func (e UserHasFilter) MarshalGQL(w io.Writer) {
+func (e CompanyOrderable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type UserOrderable string
 
 const (
-	UserOrderableName UserOrderable = "name"
-	UserOrderableTest UserOrderable = "test"
+	UserOrderableID        UserOrderable = "id"
+	UserOrderableName      UserOrderable = "name"
+	UserOrderableCompanyID UserOrderable = "companyID"
 )
 
 var AllUserOrderable = []UserOrderable{
+	UserOrderableID,
 	UserOrderableName,
-	UserOrderableTest,
+	UserOrderableCompanyID,
 }
 
 func (e UserOrderable) IsValid() bool {
 	switch e {
-	case UserOrderableName, UserOrderableTest:
+	case UserOrderableID, UserOrderableName, UserOrderableCompanyID:
 		return true
 	}
 	return false

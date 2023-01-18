@@ -72,7 +72,7 @@ var (
 // files inside the directory where you wrote the plugin.
 func Render(cfg Options) error {
 	if CurrentImports != nil {
-		panic(fmt.Errorf("recursive or concurrent call to RenderToFile detected", CurrentImports))
+		panic(fmt.Errorf("recursive or concurrent call to RenderToFile detected"))
 	}
 	CurrentImports = &Imports{packages: cfg.Packages, destDir: filepath.Dir(cfg.Filename)}
 

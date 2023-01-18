@@ -2,45 +2,86 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Cat @SQL(
-  query: {
-   get: true
-   aggregate: true
-   query: true
-   directiveEtx: ["@validated"]
-}){
-  id: ID!
+type User @SQL{
+  id: Int! @SQL_PRIMARY
   name: String!
-  owner: User! 
-  partner: User!
-  description: String!
+  companyID: Int
+  company: Company
 }
 
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  owner: User!
+type Company @SQL{
+  id: Int! @SQL_PRIMARY
+  Name: String!
+  motherCompanyID: Int
+  motherCompany: Company
 }
 
-type User @SQL(){
-  id: ID!
-  name: String!
-  test: String!
-  todos: [Todo]
-}
 
-type CatFood {
-  name: String!
-  price: Int!
-}
+# type Cat @SQL(){
+#   id: Int! @SQL_PRIMARY
+#   name: String! @SQL_INDEX
+#   alive: Boolean!
+#   age: Int!
+#   ownerId: Int!
+#   ownerName: User! @SQL_GORM(value:"foreignKey:OwnerID")
+#   description: String!
+# }
+
+# type AllFacts @SQL(){
+#   id: Int! @SQL_PRIMARY
+#   userReq: User! 
+#   userOpt: User
+#   userArrayReqReq: [User!]!
+#   userArrayReq: [User!]
+#   userArrayReq1: [User]!
+#   userArrayOpt: [User]
+#   simpleReq: Int!
+#   simple: Int
+#   simpleArrayReqReq: [Int!]!
+#   simpleArrayReq: [Int!]
+#   simpleArrayReq1: [Int]!
+#   simpleStrReq: String!
+#   simpleStr: String
+#   simpleStrArrayReqReq: [String!]!
+#   simpleStrArrayReq: [String!]
+#   simpleStrArrayReq1: [String]!
+# }
+
+
+# type Matches @SQL(){
+#   id: Int! @SQL_PRIMARY
+#   winner1ID: Int!
+#   winner1: User!
+#   winner2: User!
+#   looser1: User!
+#   looser2: User!
+#   score: Int
+# }
+
+# type Todo{
+#   text: String!
+#   done: Boolean!
+#   owner: User!
+# }
+
+# type User @SQL(){
+#   id: Int! @SQL_PRIMARY
+#   name: String!
+#   test: String!
+#   todo: Todo
+# }
+
+# type CatFood {
+#   name: String!
+#   price: Int!
+# }
 
 type Query {
-  catfoods: [CatFood!]!
+  a: String
 }
 
 type Mutation {
-  addFood(name: String!, price: Int!): CatFood @validated
+  b : Int
 }
 
 directive @validated on FIELD_DEFINITION

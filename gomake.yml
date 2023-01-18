@@ -1,0 +1,10 @@
+vars:
+
+---
+
+gen: 
+  script: 
+    - go run plugin/main.go
+start:
+  script: 
+    - go run server.go
