@@ -67,12 +67,14 @@ func getSqlBuilderFields(fields ast.FieldList, schema *ast.Schema, knownValues s
 			m = &tmp
 
 		}
-
-		res = append(res, structure.Entity{
+		tempE := structure.Entity{
 			BuiltIn:    schema.Types[field.Type.Name()].BuiltIn,
 			TypeObject: m,
 			Raw:        field,
-		})
+		}
+		if !tempE.Ignore() {
+			res = append(res, tempE)
+		}
 		fillSqlBuilderByName(schema, field.Type.Name(), knownValues)
 	}
 	return res

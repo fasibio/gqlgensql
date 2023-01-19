@@ -74,7 +74,7 @@ func GetNestedPreloadsMap(ctx *graphql.OperationContext, fields []graphql.Collec
 			}
 			res.Fields = append(res.Fields, GetDbIdFields(column.ObjectDefinition, column.Name))
 			res.SubTables = append(res.SubTables, GetNestedPreloadsMap(ctx, graphql.CollectFields(ctx, column.Selections, nil), column.Field.Definition.Type.Name()))
-		} else {
+		} else if !ShouldFieldBeIgnored(column.ObjectDefinition, column.Name) {
 			res.Fields = append(res.Fields, xstrings.ToSnakeCase(column.Name))
 		}
 	}
@@ -93,6 +93,19 @@ func removeDuplicateStr(strSlice []string) []string {
 		}
 	}
 	return list
+}
+
+func ShouldFieldBeIgnored(d *ast.Definition, fieldName string) bool {
+	for _, v := range d.Fields {
+		tmp := structure.Entity{
+			BuiltIn: false,
+			Raw:     v,
+		}
+		if tmp.Name() == fieldName {
+			return tmp.Ignore()
+		}
+	}
+	return false
 }
 
 func GetDbIdFields(d *ast.Definition, fieldName string) string {

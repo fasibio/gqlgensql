@@ -6,26 +6,31 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/fasibio/gqlgensql/plugin/gqlgensql/runtimehelper"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
-func (d *CompanyFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []clause.Expression {
-	res := make([]clause.Expression, 0)
+func (d *CompanyFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []runtimehelper.ConditionElement {
+	res := make([]runtimehelper.ConditionElement, 0)
 	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.And {
-			res = append(res, clause.And(v.ExtendsDatabaseQuery(db, alias)...))
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationAnd, tmp...))
 	}
 
 	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.Or {
-			res = append(res, clause.Or(v.ExtendsDatabaseQuery(db, alias)...))
+
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
 	}
 
 	if d.Not != nil {
-		res = append(res, clause.Not(d.Not.ExtendsDatabaseQuery(db, alias)...))
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
 	}
 
 	if d.ID != nil {
@@ -49,22 +54,27 @@ func (d *CompanyFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []
 	return res
 }
 
-func (d *UserFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []clause.Expression {
-	res := make([]clause.Expression, 0)
+func (d *UserFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []runtimehelper.ConditionElement {
+	res := make([]runtimehelper.ConditionElement, 0)
 	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.And {
-			res = append(res, clause.And(v.ExtendsDatabaseQuery(db, alias)...))
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationAnd, tmp...))
 	}
 
 	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.Or {
-			res = append(res, clause.Or(v.ExtendsDatabaseQuery(db, alias)...))
+
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
 	}
 
 	if d.Not != nil {
-		res = append(res, clause.Not(d.Not.ExtendsDatabaseQuery(db, alias)...))
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
 	}
 
 	if d.ID != nil {
@@ -88,172 +98,147 @@ func (d *UserFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []cla
 	return res
 }
 
-func getExpressions(db *gorm.DB, query interface{}, args ...interface{}) []clause.Expression {
-	return db.Statement.BuildCondition(query, args...)
-}
-
-func (d *StringFilterInput) ExtendsDatabaseQuery(db *gorm.DB, fieldName string) []clause.Expression {
-	res := make([]clause.Expression, 0)
+func (d *StringFilterInput) ExtendsDatabaseQuery(db *gorm.DB, fieldName string) []runtimehelper.ConditionElement {
+	res := make([]runtimehelper.ConditionElement, 0)
 	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.And {
-			r := clause.And(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *v)...)
-			res = append(res, r)
+			tmp = append(tmp, runtimehelper.Equal(fieldName, *v))
 		}
+		res = append(res, tmp...)
 	}
 	if d.Contains != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s Like ?", fieldName), fmt.Sprintf("%%%s%%", *d.Contains))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Like(fieldName, fmt.Sprintf("%%%s%%", *d.Contains)))
 	}
 
 	if d.Containsi != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("lower(%s) Like ?", fieldName), fmt.Sprintf("%%%s%%", strings.ToLower(*d.Containsi)))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Like(fmt.Sprintf("lower(%s)", fieldName), fmt.Sprintf("%%%s%%", strings.ToLower(*d.Containsi))))
 	}
 
 	if d.EndsWith != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s Like ?", fieldName), fmt.Sprintf("%%%s", *d.EndsWith))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Like(fieldName, fmt.Sprintf("%%%s", *d.EndsWith)))
 	}
 
 	if d.Eq != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *d.Eq)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Equal(fieldName, *d.Eq))
 	}
 
 	if d.Eqi != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("lower(%s) = ?", fieldName), strings.ToLower(*d.Eqi))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Equal(fmt.Sprintf("lower(%s)", fieldName), strings.ToLower(*d.Eqi)))
 	}
 
 	if d.In != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s in ?", fieldName), d.In)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.In(fieldName, d.In))
 	}
 
 	if d.Ne != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), d.Ne)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotEqual(fieldName, *d.Ne))
 	}
 
 	if d.Not != nil {
-		tmp := d.Not.ExtendsDatabaseQuery(db, fieldName)
-		res = append(res, clause.Not(tmp...))
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, fieldName)...))
 	}
 
 	if d.NotContains != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s Like %%?%%", fieldName), *d.NotContains)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotLike(fieldName, fmt.Sprintf("%%%s%%", *d.NotContains)))
 	}
 
 	if d.NotContainsi != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("lower(%s) Like %%?%%", fieldName), strings.ToLower(*d.NotContainsi))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotLike(fmt.Sprintf("lower(%s)", fieldName), fmt.Sprintf("%%%s%%", strings.ToLower(*d.NotContainsi))))
 	}
 
 	if d.NotIn != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s in ?", fieldName), d.NotIn)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotIn(fieldName, d.NotIn))
 	}
 
 	if d.NotNull != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s IS NULL", fieldName))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotNull(fieldName, d.NotNull))
 	}
 
 	if d.Null != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s IS NULL", fieldName))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Null(fieldName, d.Null))
 	}
 
 	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.Or {
-			r := clause.Or(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *v)...)
-			res = append(res, r)
+			tmp = append(tmp, runtimehelper.Equal(fieldName, *v))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
 	}
 
 	if d.StartsWith != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s Like ?", fieldName), fmt.Sprintf("%s%%", *d.StartsWith))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Like(fieldName, fmt.Sprintf("%s%%", *d.StartsWith)))
 	}
 
 	return res
 }
 
-func (d *IntFilterInput) ExtendsDatabaseQuery(db *gorm.DB, fieldName string) []clause.Expression {
+func (d *IntFilterInput) ExtendsDatabaseQuery(db *gorm.DB, fieldName string) []runtimehelper.ConditionElement {
 
-	res := make([]clause.Expression, 0)
+	res := make([]runtimehelper.ConditionElement, 0)
 
 	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.And {
-			r := clause.And(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *v)...)
-			res = append(res, r)
+			tmp = append(tmp, runtimehelper.Equal(fieldName, *v))
 		}
+		res = append(res, tmp...)
 	}
 
 	if d.Between != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s BETWEEN ? AND ?", fieldName), d.Between.Start, d.Between.End)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Between(fieldName, d.Between.Start, d.Between.End))
 	}
 
 	if d.Eq != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *d.Eq)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Equal(fieldName, *d.Eq))
 	}
 	if d.Gt != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s > ?", fieldName), *d.Gt)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.More(fieldName, *d.Gt))
 	}
 
 	if d.Gte != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s >= ?", fieldName), *d.Gte)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.MoreOrEqual(fieldName, *d.Gte))
 	}
 
 	if d.In != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s in ?", fieldName), d.In)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.In(fieldName, d.In))
 	}
 
 	if d.Lt != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s < ?", fieldName), d.Lt)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Less(fieldName, *d.Lt))
 	}
 
 	if d.Lte != nil {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s <= ?", fieldName), d.Lte)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.LessOrEqual(fieldName, *d.Lte))
 	}
 
 	if d.Ne != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), d.Ne)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotEqual(fieldName, *d.Ne))
 	}
 	if d.Not != nil {
-		tmp := d.Not.ExtendsDatabaseQuery(db, fieldName)
-		res = append(res, clause.Not(tmp...))
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, fieldName)...))
 	}
 
 	if d.NotIn != nil {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s in ?", fieldName), d.NotIn)...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotIn(fieldName, d.NotIn))
+
 	}
 
 	if d.NotNull != nil && *d.NotNull {
-		r := clause.Not(getExpressions(db, fmt.Sprintf("%s IS NULL", fieldName))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.NotNull(fieldName, *d.NotNull))
 	}
 
 	if d.Null != nil && *d.Null {
-		r := clause.And(getExpressions(db, fmt.Sprintf("%s IS NULL", fieldName))...)
-		res = append(res, r)
+		res = append(res, runtimehelper.Null(fieldName, *d.Null))
 	}
 
 	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
 		for _, v := range d.Or {
-			r := clause.Or(getExpressions(db, fmt.Sprintf("%s = ?", fieldName), *v)...)
-			res = append(res, r)
+			tmp = append(tmp, runtimehelper.Equal(fieldName, *v))
 		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
 	}
 
 	return res

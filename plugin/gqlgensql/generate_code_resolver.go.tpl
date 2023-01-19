@@ -25,7 +25,9 @@ func (r *queryResolver) Query{{$object.Name}}(ctx context.Context, filter *model
 	var res []*model.{{$object.Name}}
   tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db,runtimehelper.GetPreloadsMap(ctx).SubTables[0])
-	db.Statement.AddClause(clause.Where{Exprs: filter.ExtendsDatabaseQuery(db, tableName)})
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+	db.Where(sql, arguments...)
+	
 	if (order != nil){
 		if order.Asc != nil {
 			db = db.Order(fmt.Sprintf("%s.%s asc",tableName,order.Asc))

@@ -25,13 +25,6 @@ type BooleanFilterInput struct {
 	NotNull *bool               `json:"notNull"`
 }
 
-type Company struct {
-	ID              int      `json:"id" gorm:"primaryKey"`
-	Name            string   `json:"Name"`
-	MotherCompanyID *int     `json:"motherCompanyID"`
-	MotherCompany   *Company `json:"motherCompany"`
-}
-
 type CompanyFiltersInput struct {
 	ID              *IntFilterInput        `json:"id"`
 	Name            *StringFilterInput     `json:"Name"`

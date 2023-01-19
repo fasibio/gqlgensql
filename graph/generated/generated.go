@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -53,6 +54,7 @@ type ComplexityRoot struct {
 	}
 
 	Company struct {
+		Description     func(childComplexity int) int
 		ID              func(childComplexity int) int
 		MotherCompany   func(childComplexity int) int
 		MotherCompanyID func(childComplexity int) int
@@ -174,6 +176,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddUserPayload.User(childComplexity, args["filter"].(*model.UserFiltersInput), args["order"].(*model.UserOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "Company.description":
+		if e.complexity.Company.Description == nil {
+			break
+		}
+
+		return e.complexity.Company.Description(childComplexity), true
 
 	case "Company.id":
 		if e.complexity.Company.ID == nil {
@@ -598,6 +607,7 @@ type User @SQL{
 type Company @SQL{
   id: Int! @SQL_PRIMARY
   Name: String!
+  description: String @SQL_GORM(value:"-")
   motherCompanyID: Int
   motherCompany: Company
 }
@@ -1490,6 +1500,8 @@ func (ec *executionContext) fieldContext_AddCompanyPayload_company(ctx context.C
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -1665,6 +1677,47 @@ func (ec *executionContext) fieldContext_Company_Name(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _Company_description(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Company_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Company_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Company",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Company_motherCompanyID(ctx context.Context, field graphql.CollectedField, obj *model.Company) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Company_motherCompanyID(ctx, field)
 	if err != nil {
@@ -1746,6 +1799,8 @@ func (ec *executionContext) fieldContext_Company_motherCompany(ctx context.Conte
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -1800,6 +1855,8 @@ func (ec *executionContext) fieldContext_CompanyQueryResult_data(ctx context.Con
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -1942,6 +1999,8 @@ func (ec *executionContext) fieldContext_DeleteCompanyPayload_company(ctx contex
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -2669,6 +2728,8 @@ func (ec *executionContext) fieldContext_Query_getCompany(ctx context.Context, f
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -3045,6 +3106,8 @@ func (ec *executionContext) fieldContext_UpdateCompanyPayload_company(ctx contex
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -3389,6 +3452,8 @@ func (ec *executionContext) fieldContext_User_company(ctx context.Context, field
 				return ec.fieldContext_Company_id(ctx, field)
 			case "Name":
 				return ec.fieldContext_Company_Name(ctx, field)
+			case "description":
+				return ec.fieldContext_Company_description(ctx, field)
 			case "motherCompanyID":
 				return ec.fieldContext_Company_motherCompanyID(ctx, field)
 			case "motherCompany":
@@ -6574,15 +6639,32 @@ func (ec *executionContext) _Company(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Company_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "Name":
 
 			out.Values[i] = ec._Company_Name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "description":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Company_description(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "motherCompanyID":
 
 			out.Values[i] = ec._Company_motherCompanyID(ctx, field, obj)

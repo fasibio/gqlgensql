@@ -12,6 +12,7 @@ type User @SQL{
 type Company @SQL{
   id: Int! @SQL_PRIMARY
   Name: String!
+  description: String @SQL_GORM(value:"-")
   motherCompanyID: Int
   motherCompany: Company
 }

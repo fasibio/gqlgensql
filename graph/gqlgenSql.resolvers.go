@@ -24,7 +24,9 @@ func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyF
 	var res []*model.Company
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx).SubTables[0])
-	db.Statement.AddClause(clause.Where{Exprs: filter.ExtendsDatabaseQuery(db, tableName)})
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+	db.Where(sql, arguments...)
+
 	if order != nil {
 		if order.Asc != nil {
 			db = db.Order(fmt.Sprintf("%s.%s asc", tableName, order.Asc))
@@ -82,7 +84,9 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilters
 	var res []*model.User
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx).SubTables[0])
-	db.Statement.AddClause(clause.Where{Exprs: filter.ExtendsDatabaseQuery(db, tableName)})
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+	db.Where(sql, arguments...)
+
 	if order != nil {
 		if order.Asc != nil {
 			db = db.Order(fmt.Sprintf("%s.%s asc", tableName, order.Asc))

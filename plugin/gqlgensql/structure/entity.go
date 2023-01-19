@@ -27,6 +27,13 @@ func (e Entity) GormDirectiveValue() string {
 	return d.Arguments.ForName("value").Value.Raw
 }
 
+func (e Entity) Ignore() bool {
+	if e.HasGormDirective() {
+		return e.GormDirectiveValue() == "-"
+	}
+	return false
+}
+
 func (e Entity) GqlTypeName() string {
 	return e.Raw.Type.Name()
 }
