@@ -49,6 +49,48 @@ func (d *CompanyInput) MergeToType() Company {
 	}
 }
 
+func (d *TodoPatch) MergeToType() Todo {
+	var tmpID int
+	if d.ID != nil {
+		tmpID = *d.ID
+	}
+	var tmpTitle string
+	if d.Title != nil {
+		tmpTitle = *d.Title
+	}
+	var tmpDescription string
+	if d.Description != nil {
+		tmpDescription = *d.Description
+	}
+	var tmpDone bool
+	if d.Done != nil {
+		tmpDone = *d.Done
+	}
+	return Todo{
+		ID:          tmpID,
+		Title:       tmpTitle,
+		Description: tmpDescription,
+		Done:        tmpDone,
+	}
+}
+
+func (d *TodoInput) MergeToType() Todo {
+
+	tmpID := d.ID
+
+	tmpTitle := d.Title
+
+	tmpDescription := d.Description
+
+	tmpDone := d.Done
+	return Todo{
+		ID:          tmpID,
+		Title:       tmpTitle,
+		Description: tmpDescription,
+		Done:        tmpDone,
+	}
+}
+
 func (d *UserPatch) MergeToType() User {
 	var tmpID int
 	if d.ID != nil {
@@ -66,11 +108,20 @@ func (d *UserPatch) MergeToType() User {
 	if d.Company != nil {
 		tmpCompany = d.Company.MergeToType()
 	}
+	var tmpTodoList []*Todo
+	if d.TodoList != nil {
+		tmpTodoList = make([]*Todo, len(d.TodoList))
+		for _, v := range d.TodoList {
+			tmp := v.MergeToType()
+			tmpTodoList = append(tmpTodoList, &tmp)
+		}
+	}
 	return User{
 		ID:        tmpID,
 		Name:      tmpName,
 		CompanyID: tmpCompanyID,
 		Company:   &tmpCompany,
+		TodoList:  tmpTodoList,
 	}
 }
 
@@ -88,10 +139,19 @@ func (d *UserInput) MergeToType() User {
 	if d.Company != nil {
 		tmpCompany = d.Company.MergeToType()
 	}
+	var tmpTodoList []*Todo
+	if d.TodoList != nil {
+		tmpTodoList = make([]*Todo, len(d.TodoList))
+		for _, v := range d.TodoList {
+			tmp := v.MergeToType()
+			tmpTodoList = append(tmpTodoList, &tmp)
+		}
+	}
 	return User{
 		ID:        tmpID,
 		Name:      tmpName,
 		CompanyID: tmpCompanyID,
 		Company:   &tmpCompany,
+		TodoList:  tmpTodoList,
 	}
 }

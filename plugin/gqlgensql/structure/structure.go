@@ -25,6 +25,10 @@ func (sbh SqlBuilderList) Objects() map[string]Object {
 	return res
 }
 
+func (sbh SqlBuilderList) PrimaryEntityOfObject(objectName string) *Entity {
+	return sbh.Objects()[objectName].PrimaryKeyField()
+}
+
 func NewSqlBuilderHelper() SqlBuilderHelper {
 	return SqlBuilderHelper{
 		List: make(SqlBuilderList),

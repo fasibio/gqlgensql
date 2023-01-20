@@ -36,8 +36,17 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AddCompanyPayload() AddCompanyPayloadResolver
+	AddTodoPayload() AddTodoPayloadResolver
+	AddUserPayload() AddUserPayloadResolver
+	DeleteCompanyPayload() DeleteCompanyPayloadResolver
+	DeleteTodoPayload() DeleteTodoPayloadResolver
+	DeleteUserPayload() DeleteUserPayloadResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	UpdateCompanyPayload() UpdateCompanyPayloadResolver
+	UpdateTodoPayload() UpdateTodoPayloadResolver
+	UpdateUserPayload() UpdateUserPayloadResolver
 }
 
 type DirectiveRoot struct {
@@ -47,6 +56,10 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	AddCompanyPayload struct {
 		Company func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
+	}
+
+	AddTodoPayload struct {
+		Todo func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
 	}
 
 	AddUserPayload struct {
@@ -73,6 +86,12 @@ type ComplexityRoot struct {
 		Msg     func(childComplexity int) int
 	}
 
+	DeleteTodoPayload struct {
+		Count func(childComplexity int) int
+		Msg   func(childComplexity int) int
+		Todo  func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
+	}
+
 	DeleteUserPayload struct {
 		Count func(childComplexity int) int
 		Msg   func(childComplexity int) int
@@ -81,25 +100,49 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddCompany    func(childComplexity int, input []*model.CompanyInput) int
+		AddTodo       func(childComplexity int, input []*model.TodoInput) int
+		AddTodo2Users func(childComplexity int, input model.TodoRef2UsersInput) int
 		AddUser       func(childComplexity int, input []*model.UserInput) int
 		B             func(childComplexity int) int
 		DeleteCompany func(childComplexity int, filter model.CompanyFiltersInput) int
+		DeleteTodo    func(childComplexity int, filter model.TodoFiltersInput) int
 		DeleteUser    func(childComplexity int, filter model.UserFiltersInput) int
 		UpdateCompany func(childComplexity int, input model.UpdateCompanyInput) int
+		UpdateTodo    func(childComplexity int, input model.UpdateTodoInput) int
 		UpdateUser    func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	Query struct {
 		A            func(childComplexity int) int
 		GetCompany   func(childComplexity int, id int) int
+		GetTodo      func(childComplexity int, id int) int
 		GetUser      func(childComplexity int, id int) int
 		QueryCompany func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
+		QueryTodo    func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
 		QueryUser    func(childComplexity int, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) int
+	}
+
+	Todo struct {
+		Description func(childComplexity int) int
+		Done        func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Title       func(childComplexity int) int
+	}
+
+	TodoQueryResult struct {
+		Count      func(childComplexity int) int
+		Data       func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	UpdateCompanyPayload struct {
 		Company func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
 		Count   func(childComplexity int) int
+	}
+
+	UpdateTodoPayload struct {
+		Count func(childComplexity int) int
+		Todo  func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
 	}
 
 	UpdateUserPayload struct {
@@ -112,6 +155,7 @@ type ComplexityRoot struct {
 		CompanyID func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Name      func(childComplexity int) int
+		TodoList  func(childComplexity int) int
 	}
 
 	UserQueryResult struct {
@@ -121,11 +165,33 @@ type ComplexityRoot struct {
 	}
 }
 
+type AddCompanyPayloadResolver interface {
+	Company(ctx context.Context, obj *model.AddCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type AddTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.AddTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
+}
+type AddUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.AddUserPayload, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
+}
+type DeleteCompanyPayloadResolver interface {
+	Company(ctx context.Context, obj *model.DeleteCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type DeleteTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.DeleteTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
+}
+type DeleteUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.DeleteUserPayload, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
+}
 type MutationResolver interface {
 	B(ctx context.Context) (*int, error)
 	AddCompany(ctx context.Context, input []*model.CompanyInput) (*model.AddCompanyPayload, error)
 	UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error)
 	DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error)
+	AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error)
+	UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error)
+	DeleteTodo(ctx context.Context, filter model.TodoFiltersInput) (*model.DeleteTodoPayload, error)
+	AddTodo2Users(ctx context.Context, input model.TodoRef2UsersInput) (*model.UpdateUserPayload, error)
 	AddUser(ctx context.Context, input []*model.UserInput) (*model.AddUserPayload, error)
 	UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserPayload, error)
 	DeleteUser(ctx context.Context, filter model.UserFiltersInput) (*model.DeleteUserPayload, error)
@@ -134,8 +200,19 @@ type QueryResolver interface {
 	A(ctx context.Context) (*string, error)
 	GetCompany(ctx context.Context, id int) (*model.Company, error)
 	QueryCompany(ctx context.Context, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+	GetTodo(ctx context.Context, id int) (*model.Todo, error)
+	QueryTodo(ctx context.Context, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
 	GetUser(ctx context.Context, id int) (*model.User, error)
 	QueryUser(ctx context.Context, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
+}
+type UpdateCompanyPayloadResolver interface {
+	Company(ctx context.Context, obj *model.UpdateCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type UpdateTodoPayloadResolver interface {
+	Todo(ctx context.Context, obj *model.UpdateTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
+}
+type UpdateUserPayloadResolver interface {
+	User(ctx context.Context, obj *model.UpdateUserPayload, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
 }
 
 type executableSchema struct {
@@ -164,6 +241,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddCompanyPayload.Company(childComplexity, args["filter"].(*model.CompanyFiltersInput), args["order"].(*model.CompanyOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "AddTodoPayload.todo":
+		if e.complexity.AddTodoPayload.Todo == nil {
+			break
+		}
+
+		args, err := ec.field_AddTodoPayload_todo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.AddTodoPayload.Todo(childComplexity, args["filter"].(*model.TodoFiltersInput), args["order"].(*model.TodoOrder), args["first"].(*int), args["offset"].(*int)), true
 
 	case "AddUserPayload.user":
 		if e.complexity.AddUserPayload.User == nil {
@@ -259,6 +348,32 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteCompanyPayload.Msg(childComplexity), true
 
+	case "DeleteTodoPayload.count":
+		if e.complexity.DeleteTodoPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.DeleteTodoPayload.Count(childComplexity), true
+
+	case "DeleteTodoPayload.msg":
+		if e.complexity.DeleteTodoPayload.Msg == nil {
+			break
+		}
+
+		return e.complexity.DeleteTodoPayload.Msg(childComplexity), true
+
+	case "DeleteTodoPayload.todo":
+		if e.complexity.DeleteTodoPayload.Todo == nil {
+			break
+		}
+
+		args, err := ec.field_DeleteTodoPayload_todo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.DeleteTodoPayload.Todo(childComplexity, args["filter"].(*model.TodoFiltersInput), args["order"].(*model.TodoOrder), args["first"].(*int), args["offset"].(*int)), true
+
 	case "DeleteUserPayload.count":
 		if e.complexity.DeleteUserPayload.Count == nil {
 			break
@@ -297,6 +412,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddCompany(childComplexity, args["input"].([]*model.CompanyInput)), true
 
+	case "Mutation.addTodo":
+		if e.complexity.Mutation.AddTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddTodo(childComplexity, args["input"].([]*model.TodoInput)), true
+
+	case "Mutation.addTodo2Users":
+		if e.complexity.Mutation.AddTodo2Users == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addTodo2Users_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddTodo2Users(childComplexity, args["input"].(model.TodoRef2UsersInput)), true
+
 	case "Mutation.addUser":
 		if e.complexity.Mutation.AddUser == nil {
 			break
@@ -328,6 +467,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteCompany(childComplexity, args["filter"].(model.CompanyFiltersInput)), true
 
+	case "Mutation.deleteTodo":
+		if e.complexity.Mutation.DeleteTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTodo(childComplexity, args["filter"].(model.TodoFiltersInput)), true
+
 	case "Mutation.deleteUser":
 		if e.complexity.Mutation.DeleteUser == nil {
 			break
@@ -351,6 +502,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateCompany(childComplexity, args["input"].(model.UpdateCompanyInput)), true
+
+	case "Mutation.updateTodo":
+		if e.complexity.Mutation.UpdateTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTodo(childComplexity, args["input"].(model.UpdateTodoInput)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -383,6 +546,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCompany(childComplexity, args["id"].(int)), true
 
+	case "Query.getTodo":
+		if e.complexity.Query.GetTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetTodo(childComplexity, args["id"].(int)), true
+
 	case "Query.getUser":
 		if e.complexity.Query.GetUser == nil {
 			break
@@ -407,6 +582,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.QueryCompany(childComplexity, args["filter"].(*model.CompanyFiltersInput), args["order"].(*model.CompanyOrder), args["first"].(*int), args["offset"].(*int)), true
 
+	case "Query.queryTodo":
+		if e.complexity.Query.QueryTodo == nil {
+			break
+		}
+
+		args, err := ec.field_Query_queryTodo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.QueryTodo(childComplexity, args["filter"].(*model.TodoFiltersInput), args["order"].(*model.TodoOrder), args["first"].(*int), args["offset"].(*int)), true
+
 	case "Query.queryUser":
 		if e.complexity.Query.QueryUser == nil {
 			break
@@ -418,6 +605,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.QueryUser(childComplexity, args["filter"].(*model.UserFiltersInput), args["order"].(*model.UserOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "Todo.description":
+		if e.complexity.Todo.Description == nil {
+			break
+		}
+
+		return e.complexity.Todo.Description(childComplexity), true
+
+	case "Todo.done":
+		if e.complexity.Todo.Done == nil {
+			break
+		}
+
+		return e.complexity.Todo.Done(childComplexity), true
+
+	case "Todo.id":
+		if e.complexity.Todo.ID == nil {
+			break
+		}
+
+		return e.complexity.Todo.ID(childComplexity), true
+
+	case "Todo.title":
+		if e.complexity.Todo.Title == nil {
+			break
+		}
+
+		return e.complexity.Todo.Title(childComplexity), true
+
+	case "TodoQueryResult.count":
+		if e.complexity.TodoQueryResult.Count == nil {
+			break
+		}
+
+		return e.complexity.TodoQueryResult.Count(childComplexity), true
+
+	case "TodoQueryResult.data":
+		if e.complexity.TodoQueryResult.Data == nil {
+			break
+		}
+
+		return e.complexity.TodoQueryResult.Data(childComplexity), true
+
+	case "TodoQueryResult.totalCount":
+		if e.complexity.TodoQueryResult.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.TodoQueryResult.TotalCount(childComplexity), true
 
 	case "UpdateCompanyPayload.company":
 		if e.complexity.UpdateCompanyPayload.Company == nil {
@@ -437,6 +673,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateCompanyPayload.Count(childComplexity), true
+
+	case "UpdateTodoPayload.count":
+		if e.complexity.UpdateTodoPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.UpdateTodoPayload.Count(childComplexity), true
+
+	case "UpdateTodoPayload.todo":
+		if e.complexity.UpdateTodoPayload.Todo == nil {
+			break
+		}
+
+		args, err := ec.field_UpdateTodoPayload_todo_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UpdateTodoPayload.Todo(childComplexity, args["filter"].(*model.TodoFiltersInput), args["order"].(*model.TodoOrder), args["first"].(*int), args["offset"].(*int)), true
 
 	case "UpdateUserPayload.count":
 		if e.complexity.UpdateUserPayload.Count == nil {
@@ -485,6 +740,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Name(childComplexity), true
 
+	case "User.todoList":
+		if e.complexity.User.TodoList == nil {
+			break
+		}
+
+		return e.complexity.User.TodoList(childComplexity), true
+
 	case "UserQueryResult.count":
 		if e.complexity.UserQueryResult.Count == nil {
 			break
@@ -526,7 +788,14 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputSqlMutationParams,
 		ec.unmarshalInputSqlQueryParams,
 		ec.unmarshalInputStringFilterInput,
+		ec.unmarshalInputTodoFiltersInput,
+		ec.unmarshalInputTodoInput,
+		ec.unmarshalInputTodoOrder,
+		ec.unmarshalInputTodoPatch,
+		ec.unmarshalInputTodoRef2UsersInput,
+		ec.unmarshalInputTodoWhere,
 		ec.unmarshalInputUpdateCompanyInput,
+		ec.unmarshalInputUpdateTodoInput,
 		ec.unmarshalInputUpdateUserInput,
 		ec.unmarshalInputUserFiltersInput,
 		ec.unmarshalInputUserInput,
@@ -602,6 +871,7 @@ type User @SQL{
   name: String!
   companyID: Int
   company: Company
+  todoList: [Todo!]!@SQL_GORM(value:"many2many:user_todos")
 }
 
 type Company @SQL{
@@ -612,14 +882,21 @@ type Company @SQL{
   motherCompany: Company
 }
 
+type Todo @SQL {
+  id: Int! @SQL_PRIMARY
+  title: String!
+  description: String!
+  done: Boolean!
+}
+
 
 # type Cat @SQL(){
 #   id: Int! @SQL_PRIMARY
 #   name: String! @SQL_INDEX
 #   alive: Boolean!
 #   age: Int!
-#   ownerId: Int!
-#   ownerName: User! @SQL_GORM(value:"foreignKey:OwnerID")
+#   ownerID: Int!
+#   ownerName: User!
 #   description: String!
 # }
 
@@ -675,9 +952,14 @@ type Company @SQL{
 type Query {
   a: String
 }
+# input AddTodoRef2UsersInput {
+#   filter: UserFiltersInput!
+#   set: [int!]!
+# }
 
 type Mutation {
-  b : Int
+  # addTodo2Users(input:AddTodoRef2UsersInput):UpdateUserPayload
+  b: Int
 }
 
 directive @validated on FIELD_DEFINITION`, BuiltIn: false},
@@ -805,20 +1087,19 @@ input CompanyPatch{
 input UpdateCompanyInput{
   filter: CompanyFiltersInput
   set: CompanyPatch
-  remove: CompanyPatch
 }
 
 type AddCompanyPayload{
-  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): [Company!]!
+  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): CompanyQueryResult!
 }
 
 type UpdateCompanyPayload{
-  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): [Company!]!
+  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): CompanyQueryResult!
   count: Int!
 }
 
 type DeleteCompanyPayload{
-  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): [Company!]!
+  company(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int): CompanyQueryResult!
   count: Int!
   msg: String
 }
@@ -834,7 +1115,6 @@ enum CompanyOrderable {
   Name
   motherCompanyID
 }
-
 input CompanyOrder{
   asc: CompanyOrderable
   desc: CompanyOrderable
@@ -865,11 +1145,89 @@ extend type Mutation {
   deleteCompany(filter: CompanyFiltersInput!): DeleteCompanyPayload
 }
 
+input TodoInput{
+  id: Int!
+  title: String!
+  description: String!
+  done: Boolean!
+}
+
+input TodoPatch{
+  id: Int
+  title: String
+  description: String
+  done: Boolean
+}
+
+input UpdateTodoInput{
+  filter: TodoFiltersInput
+  set: TodoPatch
+}
+
+type AddTodoPayload{
+  todo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int): TodoQueryResult!
+}
+
+type UpdateTodoPayload{
+  todo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int): TodoQueryResult!
+  count: Int!
+}
+
+type DeleteTodoPayload{
+  todo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int): TodoQueryResult!
+  count: Int!
+  msg: String
+}
+
+type TodoQueryResult{
+  data: [Todo!]!
+  count: Int!
+  totalCount: Int!
+}
+
+enum TodoOrderable {
+  id
+  title
+  description
+  done
+}
+input TodoOrder{
+  asc: TodoOrderable
+  desc: TodoOrderable
+}
+
+input TodoFiltersInput{
+  id: IntFilterInput
+  title: StringFilterInput
+  description: StringFilterInput
+  done: BooleanFilterInput
+  and: [TodoFiltersInput]
+  or: [TodoFiltersInput]
+  not: TodoFiltersInput
+}
+
+input TodoWhere{
+  id: Int
+  title: String
+  description: String
+  done: Boolean
+}
+extend type Query {
+  getTodo(id: Int!): Todo 
+  queryTodo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int ): TodoQueryResult 
+}
+extend type Mutation {
+  addTodo(input: [TodoInput!]!): AddTodoPayload
+  updateTodo(input: UpdateTodoInput!): UpdateTodoPayload
+  deleteTodo(filter: TodoFiltersInput!): DeleteTodoPayload
+}
+
 input UserInput{
   id: Int!
   name: String!
   companyID: Int
   company: CompanyInput
+  todoList: [TodoInput!]!
 }
 
 input UserPatch{
@@ -877,25 +1235,25 @@ input UserPatch{
   name: String
   companyID: Int
   company: CompanyPatch
+  todoList: [TodoPatch!]
 }
 
 input UpdateUserInput{
   filter: UserFiltersInput
   set: UserPatch
-  remove: UserPatch
 }
 
 type AddUserPayload{
-  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): [User!]!
+  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): UserQueryResult!
 }
 
 type UpdateUserPayload{
-  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): [User!]!
+  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): UserQueryResult!
   count: Int!
 }
 
 type DeleteUserPayload{
-  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): [User!]!
+  user(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int): UserQueryResult!
   count: Int!
   msg: String
 }
@@ -912,6 +1270,10 @@ enum UserOrderable {
   companyID
 }
 
+input TodoRef2UsersInput{
+  filter: UserFiltersInput!
+  set: [Int!]!
+}
 input UserOrder{
   asc: UserOrderable
   desc: UserOrderable
@@ -922,6 +1284,7 @@ input UserFiltersInput{
   name: StringFilterInput
   companyID: IntFilterInput
   company:CompanyFiltersInput
+  todoList:TodoFiltersInput
   and: [UserFiltersInput]
   or: [UserFiltersInput]
   not: UserFiltersInput
@@ -937,6 +1300,7 @@ extend type Query {
   queryUser(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int ): UserQueryResult 
 }
 extend type Mutation {
+  addTodo2Users(input:TodoRef2UsersInput!): UpdateUserPayload
   addUser(input: [UserInput!]!): AddUserPayload
   updateUser(input: UpdateUserInput!): UpdateUserPayload
   deleteUser(filter: UserFiltersInput!): DeleteUserPayload
@@ -964,6 +1328,48 @@ func (ec *executionContext) field_AddCompanyPayload_company_args(ctx context.Con
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_AddTodoPayload_todo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.TodoFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.TodoOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOTodoOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1074,6 +1480,48 @@ func (ec *executionContext) field_DeleteCompanyPayload_company_args(ctx context.
 	return args, nil
 }
 
+func (ec *executionContext) field_DeleteTodoPayload_todo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.TodoFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.TodoOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOTodoOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_DeleteUserPayload_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1131,6 +1579,36 @@ func (ec *executionContext) field_Mutation_addCompany_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addTodo2Users_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.TodoRef2UsersInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNTodoRef2UsersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoRef2UsersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*model.TodoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1161,6 +1639,21 @@ func (ec *executionContext) field_Mutation_deleteCompany_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.TodoFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNTodoFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1183,6 +1676,21 @@ func (ec *executionContext) field_Mutation_updateCompany_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateCompanyInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateTodoInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateTodoInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1236,6 +1744,21 @@ func (ec *executionContext) field_Query_getCompany_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1267,6 +1790,48 @@ func (ec *executionContext) field_Query_queryCompany_args(ctx context.Context, r
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_queryTodo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.TodoFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.TodoOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOTodoOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1351,6 +1916,48 @@ func (ec *executionContext) field_UpdateCompanyPayload_company_args(ctx context.
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_UpdateTodoPayload_todo_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.TodoFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.TodoOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOTodoOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1471,7 +2078,7 @@ func (ec *executionContext) _AddCompanyPayload_company(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Company, nil
+		return ec.resolvers.AddCompanyPayload().Company(rctx, obj, fc.Args["filter"].(*model.CompanyFiltersInput), fc.Args["order"].(*model.CompanyOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1483,31 +2090,27 @@ func (ec *executionContext) _AddCompanyPayload_company(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Company)
+	res := resTmp.(*model.CompanyQueryResult)
 	fc.Result = res
-	return ec.marshalNCompany2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyᚄ(ctx, field.Selections, res)
+	return ec.marshalNCompanyQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AddCompanyPayload_company(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AddCompanyPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Company_id(ctx, field)
-			case "Name":
-				return ec.fieldContext_Company_Name(ctx, field)
-			case "description":
-				return ec.fieldContext_Company_description(ctx, field)
-			case "motherCompanyID":
-				return ec.fieldContext_Company_motherCompanyID(ctx, field)
-			case "motherCompany":
-				return ec.fieldContext_Company_motherCompany(ctx, field)
+			case "data":
+				return ec.fieldContext_CompanyQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CompanyQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CompanyQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CompanyQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -1518,6 +2121,69 @@ func (ec *executionContext) fieldContext_AddCompanyPayload_company(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_AddCompanyPayload_company_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AddTodoPayload_todo(ctx context.Context, field graphql.CollectedField, obj *model.AddTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddTodoPayload_todo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AddTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFiltersInput), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TodoQueryResult)
+	fc.Result = res
+	return ec.marshalNTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddTodoPayload_todo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddTodoPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_TodoQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_TodoQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_AddTodoPayload_todo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -1538,7 +2204,7 @@ func (ec *executionContext) _AddUserPayload_user(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.AddUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFiltersInput), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1550,29 +2216,27 @@ func (ec *executionContext) _AddUserPayload_user(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.UserQueryResult)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_AddUserPayload_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AddUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "companyID":
-				return ec.fieldContext_User_companyID(ctx, field)
-			case "company":
-				return ec.fieldContext_User_company(ctx, field)
+			case "data":
+				return ec.fieldContext_UserQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_UserQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UserQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -1970,7 +2634,7 @@ func (ec *executionContext) _DeleteCompanyPayload_company(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Company, nil
+		return ec.resolvers.DeleteCompanyPayload().Company(rctx, obj, fc.Args["filter"].(*model.CompanyFiltersInput), fc.Args["order"].(*model.CompanyOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1982,31 +2646,27 @@ func (ec *executionContext) _DeleteCompanyPayload_company(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Company)
+	res := resTmp.(*model.CompanyQueryResult)
 	fc.Result = res
-	return ec.marshalNCompany2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyᚄ(ctx, field.Selections, res)
+	return ec.marshalNCompanyQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DeleteCompanyPayload_company(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DeleteCompanyPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Company_id(ctx, field)
-			case "Name":
-				return ec.fieldContext_Company_Name(ctx, field)
-			case "description":
-				return ec.fieldContext_Company_description(ctx, field)
-			case "motherCompanyID":
-				return ec.fieldContext_Company_motherCompanyID(ctx, field)
-			case "motherCompany":
-				return ec.fieldContext_Company_motherCompany(ctx, field)
+			case "data":
+				return ec.fieldContext_CompanyQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CompanyQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CompanyQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CompanyQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -2108,6 +2768,154 @@ func (ec *executionContext) fieldContext_DeleteCompanyPayload_msg(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _DeleteTodoPayload_todo(ctx context.Context, field graphql.CollectedField, obj *model.DeleteTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteTodoPayload_todo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DeleteTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFiltersInput), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TodoQueryResult)
+	fc.Result = res
+	return ec.marshalNTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteTodoPayload_todo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteTodoPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_TodoQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_TodoQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_DeleteTodoPayload_todo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteTodoPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.DeleteTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteTodoPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteTodoPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteTodoPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteTodoPayload_msg(ctx context.Context, field graphql.CollectedField, obj *model.DeleteTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteTodoPayload_msg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Msg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteTodoPayload_msg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteTodoPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DeleteUserPayload_user(ctx context.Context, field graphql.CollectedField, obj *model.DeleteUserPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DeleteUserPayload_user(ctx, field)
 	if err != nil {
@@ -2122,7 +2930,7 @@ func (ec *executionContext) _DeleteUserPayload_user(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.DeleteUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFiltersInput), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2134,29 +2942,27 @@ func (ec *executionContext) _DeleteUserPayload_user(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.UserQueryResult)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_DeleteUserPayload_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DeleteUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "companyID":
-				return ec.fieldContext_User_companyID(ctx, field)
-			case "company":
-				return ec.fieldContext_User_company(ctx, field)
+			case "data":
+				return ec.fieldContext_UserQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_UserQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UserQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -2467,6 +3273,238 @@ func (ec *executionContext) fieldContext_Mutation_deleteCompany(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteCompany_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addTodo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddTodo(rctx, fc.Args["input"].([]*model.TodoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.AddTodoPayload)
+	fc.Result = res
+	return ec.marshalOAddTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddTodoPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "todo":
+				return ec.fieldContext_AddTodoPayload_todo(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AddTodoPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateTodo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTodo(rctx, fc.Args["input"].(model.UpdateTodoInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateTodoPayload)
+	fc.Result = res
+	return ec.marshalOUpdateTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "todo":
+				return ec.fieldContext_UpdateTodoPayload_todo(ctx, field)
+			case "count":
+				return ec.fieldContext_UpdateTodoPayload_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateTodoPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteTodo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTodo(rctx, fc.Args["filter"].(model.TodoFiltersInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteTodoPayload)
+	fc.Result = res
+	return ec.marshalODeleteTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteTodoPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "todo":
+				return ec.fieldContext_DeleteTodoPayload_todo(ctx, field)
+			case "count":
+				return ec.fieldContext_DeleteTodoPayload_count(ctx, field)
+			case "msg":
+				return ec.fieldContext_DeleteTodoPayload_msg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteTodoPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addTodo2Users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addTodo2Users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddTodo2Users(rctx, fc.Args["input"].(model.TodoRef2UsersInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateUserPayload)
+	fc.Result = res
+	return ec.marshalOUpdateUserPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateUserPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addTodo2Users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_UpdateUserPayload_user(ctx, field)
+			case "count":
+				return ec.fieldContext_UpdateUserPayload_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateUserPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addTodo2Users_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2812,6 +3850,128 @@ func (ec *executionContext) fieldContext_Query_queryCompany(ctx context.Context,
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getTodo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetTodo(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Todo)
+	fc.Result = res
+	return ec.marshalOTodo2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Todo_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Todo_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Todo_description(ctx, field)
+			case "done":
+				return ec.fieldContext_Todo_done(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_queryTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_queryTodo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().QueryTodo(rctx, fc.Args["filter"].(*model.TodoFiltersInput), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.TodoQueryResult)
+	fc.Result = res
+	return ec.marshalOTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_queryTodo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_TodoQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_TodoQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_queryTodo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getUser(ctx, field)
 	if err != nil {
@@ -2856,6 +4016,8 @@ func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, fiel
 				return ec.fieldContext_User_companyID(ctx, field)
 			case "company":
 				return ec.fieldContext_User_company(ctx, field)
+			case "todoList":
+				return ec.fieldContext_User_todoList(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -3063,6 +4225,324 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_title(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_description(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Todo_done(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_done(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Done, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_done(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodoQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.TodoQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoQueryResult_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Todo)
+	fc.Result = res
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TodoQueryResult_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodoQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Todo_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Todo_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Todo_description(ctx, field)
+			case "done":
+				return ec.fieldContext_Todo_done(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodoQueryResult_count(ctx context.Context, field graphql.CollectedField, obj *model.TodoQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoQueryResult_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TodoQueryResult_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodoQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TodoQueryResult_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.TodoQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TodoQueryResult_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TodoQueryResult_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TodoQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UpdateCompanyPayload_company(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCompanyPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UpdateCompanyPayload_company(ctx, field)
 	if err != nil {
@@ -3077,7 +4557,7 @@ func (ec *executionContext) _UpdateCompanyPayload_company(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Company, nil
+		return ec.resolvers.UpdateCompanyPayload().Company(rctx, obj, fc.Args["filter"].(*model.CompanyFiltersInput), fc.Args["order"].(*model.CompanyOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3089,31 +4569,27 @@ func (ec *executionContext) _UpdateCompanyPayload_company(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Company)
+	res := resTmp.(*model.CompanyQueryResult)
 	fc.Result = res
-	return ec.marshalNCompany2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyᚄ(ctx, field.Selections, res)
+	return ec.marshalNCompanyQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UpdateCompanyPayload_company(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UpdateCompanyPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Company_id(ctx, field)
-			case "Name":
-				return ec.fieldContext_Company_Name(ctx, field)
-			case "description":
-				return ec.fieldContext_Company_description(ctx, field)
-			case "motherCompanyID":
-				return ec.fieldContext_Company_motherCompanyID(ctx, field)
-			case "motherCompany":
-				return ec.fieldContext_Company_motherCompany(ctx, field)
+			case "data":
+				return ec.fieldContext_CompanyQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CompanyQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CompanyQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Company", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type CompanyQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -3174,6 +4650,113 @@ func (ec *executionContext) fieldContext_UpdateCompanyPayload_count(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _UpdateTodoPayload_todo(ctx context.Context, field graphql.CollectedField, obj *model.UpdateTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateTodoPayload_todo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UpdateTodoPayload().Todo(rctx, obj, fc.Args["filter"].(*model.TodoFiltersInput), fc.Args["order"].(*model.TodoOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TodoQueryResult)
+	fc.Result = res
+	return ec.marshalNTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateTodoPayload_todo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateTodoPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_TodoQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_TodoQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_TodoQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TodoQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UpdateTodoPayload_todo_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateTodoPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.UpdateTodoPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateTodoPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateTodoPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateTodoPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UpdateUserPayload_user(ctx context.Context, field graphql.CollectedField, obj *model.UpdateUserPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UpdateUserPayload_user(ctx, field)
 	if err != nil {
@@ -3188,7 +4771,7 @@ func (ec *executionContext) _UpdateUserPayload_user(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.UpdateUserPayload().User(rctx, obj, fc.Args["filter"].(*model.UserFiltersInput), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3200,29 +4783,27 @@ func (ec *executionContext) _UpdateUserPayload_user(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.(*model.UserQueryResult)
 	fc.Result = res
-	return ec.marshalNUser2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserᚄ(ctx, field.Selections, res)
+	return ec.marshalNUserQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UpdateUserPayload_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UpdateUserPayload",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_User_id(ctx, field)
-			case "name":
-				return ec.fieldContext_User_name(ctx, field)
-			case "companyID":
-				return ec.fieldContext_User_companyID(ctx, field)
-			case "company":
-				return ec.fieldContext_User_company(ctx, field)
+			case "data":
+				return ec.fieldContext_UserQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_UserQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_UserQueryResult_totalCount(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserQueryResult", field.Name)
 		},
 	}
 	defer func() {
@@ -3465,6 +5046,60 @@ func (ec *executionContext) fieldContext_User_company(ctx context.Context, field
 	return fc, nil
 }
 
+func (ec *executionContext) _User_todoList(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_todoList(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TodoList, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Todo)
+	fc.Result = res
+	return ec.marshalNTodo2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_todoList(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Todo_id(ctx, field)
+			case "title":
+				return ec.fieldContext_Todo_title(ctx, field)
+			case "description":
+				return ec.fieldContext_Todo_description(ctx, field)
+			case "done":
+				return ec.fieldContext_Todo_done(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.UserQueryResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserQueryResult_data(ctx, field)
 	if err != nil {
@@ -3512,6 +5147,8 @@ func (ec *executionContext) fieldContext_UserQueryResult_data(ctx context.Contex
 				return ec.fieldContext_User_companyID(ctx, field)
 			case "company":
 				return ec.fieldContext_User_company(ctx, field)
+			case "todoList":
+				return ec.fieldContext_User_todoList(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -6212,6 +7849,310 @@ func (ec *executionContext) unmarshalInputStringFilterInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputTodoFiltersInput(ctx context.Context, obj interface{}) (model.TodoFiltersInput, error) {
+	var it model.TodoFiltersInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "title", "description", "done", "and", "or", "not"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "done":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
+			it.Done, err = ec.unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐBooleanFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOTodoFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOTodoFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj interface{}) (model.TodoInput, error) {
+	var it model.TodoInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "done":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
+			it.Done, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTodoOrder(ctx context.Context, obj interface{}) (model.TodoOrder, error) {
+	var it model.TodoOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"asc", "desc"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "asc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("asc"))
+			it.Asc, err = ec.unmarshalOTodoOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "desc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("desc"))
+			it.Desc, err = ec.unmarshalOTodoOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTodoPatch(ctx context.Context, obj interface{}) (model.TodoPatch, error) {
+	var it model.TodoPatch
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "done":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
+			it.Done, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTodoRef2UsersInput(ctx context.Context, obj interface{}) (model.TodoRef2UsersInput, error) {
+	var it model.TodoRef2UsersInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"filter", "set"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			it.Filter, err = ec.unmarshalNUserFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "set":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
+			it.Set, err = ec.unmarshalNInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTodoWhere(ctx context.Context, obj interface{}) (model.TodoWhere, error) {
+	var it model.TodoWhere
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "done":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
+			it.Done, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context, obj interface{}) (model.UpdateCompanyInput, error) {
 	var it model.UpdateCompanyInput
 	asMap := map[string]interface{}{}
@@ -6219,7 +8160,7 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"filter", "set", "remove"}
+	fieldsInOrder := [...]string{"filter", "set"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6242,11 +8183,39 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "remove":
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateTodoInput(ctx context.Context, obj interface{}) (model.UpdateTodoInput, error) {
+	var it model.UpdateTodoInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"filter", "set"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filter":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("remove"))
-			it.Remove, err = ec.unmarshalOCompanyPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyPatch(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			it.Filter, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "set":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
+			it.Set, err = ec.unmarshalOTodoPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatch(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6263,7 +8232,7 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"filter", "set", "remove"}
+	fieldsInOrder := [...]string{"filter", "set"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6286,14 +8255,6 @@ func (ec *executionContext) unmarshalInputUpdateUserInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "remove":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("remove"))
-			it.Remove, err = ec.unmarshalOUserPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatch(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -6307,7 +8268,7 @@ func (ec *executionContext) unmarshalInputUserFiltersInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "and", "or", "not"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList", "and", "or", "not"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6343,6 +8304,14 @@ func (ec *executionContext) unmarshalInputUserFiltersInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
 			it.Company, err = ec.unmarshalOCompanyFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "todoList":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoList"))
+			it.TodoList, err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6383,7 +8352,7 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6419,6 +8388,14 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
 			it.Company, err = ec.unmarshalOCompanyInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "todoList":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoList"))
+			it.TodoList, err = ec.unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6471,7 +8448,7 @@ func (ec *executionContext) unmarshalInputUserPatch(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -6507,6 +8484,14 @@ func (ec *executionContext) unmarshalInputUserPatch(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company"))
 			it.Company, err = ec.unmarshalOCompanyPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyPatch(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "todoList":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoList"))
+			it.TodoList, err = ec.unmarshalOTodoPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatchᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -6579,12 +8564,66 @@ func (ec *executionContext) _AddCompanyPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AddCompanyPayload")
 		case "company":
+			field := field
 
-			out.Values[i] = ec._AddCompanyPayload_company(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddCompanyPayload_company(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var addTodoPayloadImplementors = []string{"AddTodoPayload"}
+
+func (ec *executionContext) _AddTodoPayload(ctx context.Context, sel ast.SelectionSet, obj *model.AddTodoPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addTodoPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AddTodoPayload")
+		case "todo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddTodoPayload_todo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6607,12 +8646,25 @@ func (ec *executionContext) _AddUserPayload(ctx context.Context, sel ast.Selecti
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("AddUserPayload")
 		case "user":
+			field := field
 
-			out.Values[i] = ec._AddUserPayload_user(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddUserPayload_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6737,22 +8789,87 @@ func (ec *executionContext) _DeleteCompanyPayload(ctx context.Context, sel ast.S
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DeleteCompanyPayload")
 		case "company":
+			field := field
 
-			out.Values[i] = ec._DeleteCompanyPayload_company(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteCompanyPayload_company(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "count":
 
 			out.Values[i] = ec._DeleteCompanyPayload_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "msg":
 
 			out.Values[i] = ec._DeleteCompanyPayload_msg(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteTodoPayloadImplementors = []string{"DeleteTodoPayload"}
+
+func (ec *executionContext) _DeleteTodoPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteTodoPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteTodoPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteTodoPayload")
+		case "todo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteTodoPayload_todo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._DeleteTodoPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "msg":
+
+			out.Values[i] = ec._DeleteTodoPayload_msg(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6776,18 +8893,31 @@ func (ec *executionContext) _DeleteUserPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("DeleteUserPayload")
 		case "user":
+			field := field
 
-			out.Values[i] = ec._DeleteUserPayload_user(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteUserPayload_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "count":
 
 			out.Values[i] = ec._DeleteUserPayload_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "msg":
 
@@ -6845,6 +8975,30 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteCompany(ctx, field)
+			})
+
+		case "addTodo":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addTodo(ctx, field)
+			})
+
+		case "updateTodo":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateTodo(ctx, field)
+			})
+
+		case "deleteTodo":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteTodo(ctx, field)
+			})
+
+		case "addTodo2Users":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addTodo2Users(ctx, field)
 			})
 
 		case "addUser":
@@ -6955,6 +9109,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getTodo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getTodo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "queryTodo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_queryTodo(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getUser":
 			field := field
 
@@ -7018,6 +9212,97 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var todoImplementors = []string{"Todo"}
+
+func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj *model.Todo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, todoImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Todo")
+		case "id":
+
+			out.Values[i] = ec._Todo_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+
+			out.Values[i] = ec._Todo_title(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+
+			out.Values[i] = ec._Todo_description(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "done":
+
+			out.Values[i] = ec._Todo_done(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var todoQueryResultImplementors = []string{"TodoQueryResult"}
+
+func (ec *executionContext) _TodoQueryResult(ctx context.Context, sel ast.SelectionSet, obj *model.TodoQueryResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, todoQueryResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TodoQueryResult")
+		case "data":
+
+			out.Values[i] = ec._TodoQueryResult_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._TodoQueryResult_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._TodoQueryResult_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var updateCompanyPayloadImplementors = []string{"UpdateCompanyPayload"}
 
 func (ec *executionContext) _UpdateCompanyPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateCompanyPayload) graphql.Marshaler {
@@ -7029,18 +9314,79 @@ func (ec *executionContext) _UpdateCompanyPayload(ctx context.Context, sel ast.S
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateCompanyPayload")
 		case "company":
+			field := field
 
-			out.Values[i] = ec._UpdateCompanyPayload_company(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateCompanyPayload_company(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "count":
 
 			out.Values[i] = ec._UpdateCompanyPayload_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateTodoPayloadImplementors = []string{"UpdateTodoPayload"}
+
+func (ec *executionContext) _UpdateTodoPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateTodoPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateTodoPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateTodoPayload")
+		case "todo":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateTodoPayload_todo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._UpdateTodoPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7064,18 +9410,31 @@ func (ec *executionContext) _UpdateUserPayload(ctx context.Context, sel ast.Sele
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UpdateUserPayload")
 		case "user":
+			field := field
 
-			out.Values[i] = ec._UpdateUserPayload_user(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateUserPayload_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "count":
 
 			out.Values[i] = ec._UpdateUserPayload_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7120,6 +9479,13 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = ec._User_company(ctx, field, obj)
 
+		case "todoList":
+
+			out.Values[i] = ec._User_todoList(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7587,6 +9953,20 @@ func (ec *executionContext) unmarshalNCompanyInput2ᚖgithubᚗcomᚋfasibioᚋg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNCompanyQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyQueryResult(ctx context.Context, sel ast.SelectionSet, v model.CompanyQueryResult) graphql.Marshaler {
+	return ec._CompanyQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCompanyQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.CompanyQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CompanyQueryResult(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -7600,6 +9980,38 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNInt2ᚕintᚄ(ctx context.Context, v interface{}) ([]int, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]int, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNInt2int(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNInt2ᚕintᚄ(ctx context.Context, sel ast.SelectionSet, v []int) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNInt2int(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -7617,8 +10029,118 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNTodo2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Todo) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTodo2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNTodo2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Todo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTodoFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx context.Context, v interface{}) (model.TodoFiltersInput, error) {
+	res, err := ec.unmarshalInputTodoFiltersInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx context.Context, v interface{}) ([]*model.TodoInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.TodoInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTodoInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNTodoInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInput(ctx context.Context, v interface{}) (*model.TodoInput, error) {
+	res, err := ec.unmarshalInputTodoInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNTodoPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatch(ctx context.Context, v interface{}) (*model.TodoPatch, error) {
+	res, err := ec.unmarshalInputTodoPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTodoQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx context.Context, sel ast.SelectionSet, v model.TodoQueryResult) graphql.Marshaler {
+	return ec._TodoQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.TodoQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._TodoQueryResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTodoRef2UsersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoRef2UsersInput(ctx context.Context, v interface{}) (model.TodoRef2UsersInput, error) {
+	res, err := ec.unmarshalInputTodoRef2UsersInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateCompanyInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyInput(ctx context.Context, v interface{}) (model.UpdateCompanyInput, error) {
 	res, err := ec.unmarshalInputUpdateCompanyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateTodoInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoInput(ctx context.Context, v interface{}) (model.UpdateTodoInput, error) {
+	res, err := ec.unmarshalInputUpdateTodoInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -7686,6 +10208,11 @@ func (ec *executionContext) unmarshalNUserFiltersInput2githubᚗcomᚋfasibioᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUserFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserFiltersInput(ctx context.Context, v interface{}) (*model.UserFiltersInput, error) {
+	res, err := ec.unmarshalInputUserFiltersInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUserInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserInputᚄ(ctx context.Context, v interface{}) ([]*model.UserInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -7706,6 +10233,20 @@ func (ec *executionContext) unmarshalNUserInput2ᚕᚖgithubᚗcomᚋfasibioᚋg
 func (ec *executionContext) unmarshalNUserInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserInput(ctx context.Context, v interface{}) (*model.UserInput, error) {
 	res, err := ec.unmarshalInputUserInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUserQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx context.Context, sel ast.SelectionSet, v model.UserQueryResult) graphql.Marshaler {
+	return ec._UserQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.UserQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UserQueryResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -7968,6 +10509,13 @@ func (ec *executionContext) marshalOAddCompanyPayload2ᚖgithubᚗcomᚋfasibio�
 	return ec._AddCompanyPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOAddTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddTodoPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AddTodoPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOAddUserPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddUserPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddUserPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -8128,6 +10676,13 @@ func (ec *executionContext) marshalODeleteCompanyPayload2ᚖgithubᚗcomᚋfasib
 		return graphql.Null
 	}
 	return ec._DeleteCompanyPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODeleteTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteTodoPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DeleteTodoPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalODeleteUserPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteUserPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteUserPayload) graphql.Marshaler {
@@ -8367,11 +10922,112 @@ func (ec *executionContext) unmarshalOStringFilterInput2ᚖgithubᚗcomᚋfasibi
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOTodo2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodo(ctx context.Context, sel ast.SelectionSet, v *model.Todo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Todo(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTodoFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx context.Context, v interface{}) ([]*model.TodoFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.TodoFiltersInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx context.Context, v interface{}) (*model.TodoFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTodoFiltersInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTodoOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrder(ctx context.Context, v interface{}) (*model.TodoOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTodoOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOTodoOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrderable(ctx context.Context, v interface{}) (*model.TodoOrderable, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.TodoOrderable)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTodoOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoOrderable(ctx context.Context, sel ast.SelectionSet, v *model.TodoOrderable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOTodoPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatchᚄ(ctx context.Context, v interface{}) ([]*model.TodoPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.TodoPatch, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNTodoPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatch(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOTodoPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatch(ctx context.Context, v interface{}) (*model.TodoPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTodoPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.TodoQueryResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TodoQueryResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOUpdateCompanyPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateCompanyPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._UpdateCompanyPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUpdateTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateTodoPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UpdateTodoPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUpdateUserPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateUserPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateUserPayload) graphql.Marshaler {

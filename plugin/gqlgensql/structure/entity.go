@@ -38,6 +38,10 @@ func (e Entity) GqlTypeName() string {
 	return e.Raw.Type.Name()
 }
 
+func (e Entity) GqlTypePrimaryDataType() string {
+	return e.GqlTypeObj().PrimaryKeyField().GqlTypeName()
+}
+
 func (e Entity) GqlTypeObj() *Object {
 	return e.TypeObject
 }
@@ -89,7 +93,7 @@ func (e *Entity) IsIndex() bool {
 
 func (e *Entity) WhereAble() bool {
 	switch e.Raw.Type.Name() {
-	case "String", "DateTime", "Int", "Float", "ID":
+	case "String", "DateTime", "Int", "Float", "ID", "Boolean":
 		return true
 	}
 	return false
@@ -97,7 +101,7 @@ func (e *Entity) WhereAble() bool {
 
 func (e *Entity) OrderAble() bool {
 	switch e.Raw.Type.Name() {
-	case "String", "DateTime", "Int", "Float", "ID":
+	case "String", "DateTime", "Int", "Float", "ID", "Boolean":
 		return true
 	}
 	return false

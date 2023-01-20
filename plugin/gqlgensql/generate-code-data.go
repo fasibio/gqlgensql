@@ -180,7 +180,6 @@ func (db *GenerateData) GetGoFieldName(typeName string, v structure.Entity) stri
 		if v1.Name == typeName {
 			for _, fv := range v1.Fields {
 				if fv.Name == v.Name() {
-
 					return fv.GoFieldName
 				}
 			}
@@ -217,11 +216,15 @@ func (db *GenerateData) GetValueOfInput(objectname string, builder structure.Obj
 }
 
 func (db *GenerateData) PrimaryKeyOfObject(o string) string {
+	return db.PrimaryKeyEntityOfObject(o).Name()
+}
+
+func (db *GenerateData) PrimaryKeyEntityOfObject(o string) *structure.Entity {
 	d, ok := db.Handler.List[o]
 	if !ok {
-		panic("PrimaryKeyOfObject: Can not find object " + o)
+		panic("PrimaryKeyEntityOfObject: Can not find object " + o)
 	}
-	return d.PrimaryKeyField().Name()
+	return d.PrimaryKeyField()
 }
 
 func (db *GenerateData) Imports() []string {
@@ -233,6 +236,7 @@ func (db *GenerateData) Imports() []string {
 		importName := db.Data.Config.Models[v.Name()].Model[0][:sp]
 		seenImports[importName] = true
 	}
+	addedImports = append(addedImports, db.Data.Config.Exec.ImportPath())
 	for key := range seenImports {
 		addedImports = append(addedImports, key)
 	}

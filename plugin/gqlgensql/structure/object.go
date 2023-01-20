@@ -23,6 +23,23 @@ func (o Object) Name() string {
 	return o.Raw.Name
 }
 
+func (o Object) Many2ManyRefEntities() map[string]Entity {
+	res := make(map[string]Entity)
+	for _, v := range o.Entities {
+		if v.HasGormDirective() && strings.Contains(v.GormDirectiveValue(), "many2many:") {
+			gs := strings.Split(v.GormDirectiveValue(), ";")
+			key := ""
+			for _, gd := range gs {
+				if strings.Contains(gd, "many2many:") {
+					key = strings.Replace(gd, "many2many:", "", 1)
+				}
+			}
+			res[key] = v
+		}
+	}
+	return res
+}
+
 func (o Object) HasSqlDirective() bool {
 	return o.SQLDirective() != nil
 }
@@ -42,13 +59,18 @@ func (o Object) ForeignNameKeyName(fieldName string) string {
 out:
 	for _, e := range o.Entities {
 		if e.Name() == fieldName && e.HasGormDirective() {
-			if v := e.GormDirectiveValue(); strings.Contains(v, "foreignKey:") {
+			v := e.GormDirectiveValue()
+			if strings.Contains(v, "foreignKey:") {
 				commands := strings.Split(v, ";")
 				for _, c := range commands {
 					foreignName = strings.Split(c, ":")[1]
 					break out
 				}
 			}
+			if strings.Contains(v, "many2many:") {
+				foreignName = ""
+			}
+
 			break out
 		}
 	}

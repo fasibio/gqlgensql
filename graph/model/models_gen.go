@@ -9,11 +9,15 @@ import (
 )
 
 type AddCompanyPayload struct {
-	Company []*Company `json:"company"`
+	Company *CompanyQueryResult `json:"company"`
+}
+
+type AddTodoPayload struct {
+	Todo *TodoQueryResult `json:"todo"`
 }
 
 type AddUserPayload struct {
-	User []*User `json:"user"`
+	User *UserQueryResult `json:"user"`
 }
 
 type BooleanFilterInput struct {
@@ -67,15 +71,21 @@ type CompanyWhere struct {
 }
 
 type DeleteCompanyPayload struct {
-	Company []*Company `json:"company"`
-	Count   int        `json:"count"`
-	Msg     *string    `json:"msg"`
+	Company *CompanyQueryResult `json:"company"`
+	Count   int                 `json:"count"`
+	Msg     *string             `json:"msg"`
+}
+
+type DeleteTodoPayload struct {
+	Todo  *TodoQueryResult `json:"todo"`
+	Count int              `json:"count"`
+	Msg   *string          `json:"msg"`
 }
 
 type DeleteUserPayload struct {
-	User  []*User `json:"user"`
-	Count int     `json:"count"`
-	Msg   *string `json:"msg"`
+	User  *UserQueryResult `json:"user"`
+	Count int              `json:"count"`
+	Msg   *string          `json:"msg"`
 }
 
 type IDFilterInput struct {
@@ -144,26 +154,88 @@ type StringFilterInput struct {
 	NotIn        []*string          `json:"notIn"`
 }
 
+type Todo struct {
+	ID          int    `json:"id" gorm:"primaryKey"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Done        bool   `json:"done"`
+}
+
+type TodoFiltersInput struct {
+	ID          *IntFilterInput     `json:"id"`
+	Title       *StringFilterInput  `json:"title"`
+	Description *StringFilterInput  `json:"description"`
+	Done        *BooleanFilterInput `json:"done"`
+	And         []*TodoFiltersInput `json:"and"`
+	Or          []*TodoFiltersInput `json:"or"`
+	Not         *TodoFiltersInput   `json:"not"`
+}
+
+type TodoInput struct {
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Done        bool   `json:"done"`
+}
+
+type TodoOrder struct {
+	Asc  *TodoOrderable `json:"asc"`
+	Desc *TodoOrderable `json:"desc"`
+}
+
+type TodoPatch struct {
+	ID          *int    `json:"id"`
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Done        *bool   `json:"done"`
+}
+
+type TodoQueryResult struct {
+	Data       []*Todo `json:"data"`
+	Count      int     `json:"count"`
+	TotalCount int     `json:"totalCount"`
+}
+
+type TodoRef2UsersInput struct {
+	Filter *UserFiltersInput `json:"filter"`
+	Set    []int             `json:"set"`
+}
+
+type TodoWhere struct {
+	ID          *int    `json:"id"`
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Done        *bool   `json:"done"`
+}
+
 type UpdateCompanyInput struct {
 	Filter *CompanyFiltersInput `json:"filter"`
 	Set    *CompanyPatch        `json:"set"`
-	Remove *CompanyPatch        `json:"remove"`
 }
 
 type UpdateCompanyPayload struct {
-	Company []*Company `json:"company"`
-	Count   int        `json:"count"`
+	Company *CompanyQueryResult `json:"company"`
+	Count   int                 `json:"count"`
+}
+
+type UpdateTodoInput struct {
+	Filter *TodoFiltersInput `json:"filter"`
+	Set    *TodoPatch        `json:"set"`
+}
+
+type UpdateTodoPayload struct {
+	Todo  *TodoQueryResult `json:"todo"`
+	Count int              `json:"count"`
 }
 
 type UpdateUserInput struct {
 	Filter *UserFiltersInput `json:"filter"`
 	Set    *UserPatch        `json:"set"`
-	Remove *UserPatch        `json:"remove"`
 }
 
 type UpdateUserPayload struct {
-	User  []*User `json:"user"`
-	Count int     `json:"count"`
+	User  *UserQueryResult `json:"user"`
+	Count int              `json:"count"`
 }
 
 type User struct {
@@ -171,6 +243,7 @@ type User struct {
 	Name      string   `json:"name"`
 	CompanyID *int     `json:"companyID"`
 	Company   *Company `json:"company"`
+	TodoList  []*Todo  `json:"todoList" gorm:"many2many:user_todos"`
 }
 
 type UserFiltersInput struct {
@@ -178,6 +251,7 @@ type UserFiltersInput struct {
 	Name      *StringFilterInput   `json:"name"`
 	CompanyID *IntFilterInput      `json:"companyID"`
 	Company   *CompanyFiltersInput `json:"company"`
+	TodoList  *TodoFiltersInput    `json:"todoList"`
 	And       []*UserFiltersInput  `json:"and"`
 	Or        []*UserFiltersInput  `json:"or"`
 	Not       *UserFiltersInput    `json:"not"`
@@ -188,6 +262,7 @@ type UserInput struct {
 	Name      string        `json:"name"`
 	CompanyID *int          `json:"companyID"`
 	Company   *CompanyInput `json:"company"`
+	TodoList  []*TodoInput  `json:"todoList"`
 }
 
 type UserOrder struct {
@@ -200,6 +275,7 @@ type UserPatch struct {
 	Name      *string       `json:"name"`
 	CompanyID *int          `json:"companyID"`
 	Company   *CompanyPatch `json:"company"`
+	TodoList  []*TodoPatch  `json:"todoList"`
 }
 
 type UserQueryResult struct {
@@ -254,6 +330,51 @@ func (e *CompanyOrderable) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CompanyOrderable) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TodoOrderable string
+
+const (
+	TodoOrderableID          TodoOrderable = "id"
+	TodoOrderableTitle       TodoOrderable = "title"
+	TodoOrderableDescription TodoOrderable = "description"
+	TodoOrderableDone        TodoOrderable = "done"
+)
+
+var AllTodoOrderable = []TodoOrderable{
+	TodoOrderableID,
+	TodoOrderableTitle,
+	TodoOrderableDescription,
+	TodoOrderableDone,
+}
+
+func (e TodoOrderable) IsValid() bool {
+	switch e {
+	case TodoOrderableID, TodoOrderableTitle, TodoOrderableDescription, TodoOrderableDone:
+		return true
+	}
+	return false
+}
+
+func (e TodoOrderable) String() string {
+	return string(e)
+}
+
+func (e *TodoOrderable) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TodoOrderable(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TodoOrderable", str)
+	}
+	return nil
+}
+
+func (e TodoOrderable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

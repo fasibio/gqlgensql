@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/99designs/gqlgen/codegen/templates"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/fasibio/gqlgensql/plugin/gqlgensql/structure"
 	"github.com/huandu/xstrings"
@@ -30,15 +31,16 @@ const (
 )
 
 type PreloadFields struct {
-	Fields    []string
-	TableName string
-	SubTables []PreloadFields
+	Fields      []string
+	TableName   string
+	SubTables   []PreloadFields
+	PreloadName string
 }
 
-func GetPreloadsMap(ctx context.Context) PreloadFields {
+func GetPreloadsMap(ctx context.Context, tableName string) PreloadFields {
 	return GetNestedPreloadsMap(graphql.GetOperationContext(ctx),
 		graphql.CollectFieldsCtx(ctx, nil),
-		"")
+		tableName)
 }
 
 func GetPreloads(ctx context.Context) []string {
@@ -73,7 +75,9 @@ func GetNestedPreloadsMap(ctx *graphql.OperationContext, fields []graphql.Collec
 				res.SubTables = make([]PreloadFields, 0)
 			}
 			res.Fields = append(res.Fields, GetDbIdFields(column.ObjectDefinition, column.Name))
-			res.SubTables = append(res.SubTables, GetNestedPreloadsMap(ctx, graphql.CollectFields(ctx, column.Selections, nil), column.Field.Definition.Type.Name()))
+			tmp := GetNestedPreloadsMap(ctx, graphql.CollectFields(ctx, column.Selections, nil), column.Field.Definition.Type.Name())
+			tmp.PreloadName = column.Name
+			res.SubTables = append(res.SubTables, tmp)
 		} else if !ShouldFieldBeIgnored(column.ObjectDefinition, column.Name) {
 			res.Fields = append(res.Fields, xstrings.ToSnakeCase(column.Name))
 		}
@@ -87,6 +91,9 @@ func removeDuplicateStr(strSlice []string) []string {
 	allKeys := make(map[string]bool)
 	list := []string{}
 	for _, item := range strSlice {
+		if item == "" {
+			continue
+		}
 		if _, value := allKeys[item]; !value {
 			allKeys[item] = true
 			list = append(list, item)
@@ -161,10 +168,14 @@ func GetNestedPreloadSelection(data PreloadFields, dbObj *gorm.DB) *gorm.DB {
 	res := dbObj.Select(fields)
 	if data.SubTables != nil {
 		for _, t := range data.SubTables {
-			res = res.Preload(t.TableName, func(db *gorm.DB) *gorm.DB {
-				return GetNestedPreloadSelection(t, db)
-			})
+			res = addPreloadCondition(t, res)
 		}
 	}
 	return res
+}
+
+func addPreloadCondition(pFields PreloadFields, d *gorm.DB) *gorm.DB {
+	return d.Preload(templates.UcFirst(pFields.PreloadName), func(db *gorm.DB) *gorm.DB {
+		return GetNestedPreloadSelection(pFields, db)
+	})
 }

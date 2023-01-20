@@ -104,20 +104,19 @@ input {{$object.Name}}Patch{
 input Update{{$object.Name}}Input{
   filter: {{$object.Name}}FiltersInput
   set: {{$object.Name}}Patch
-  remove: {{$object.Name}}Patch
 }
 
 type Add{{$object.Name}}Payload{
-  {{lcFirst $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): [{{$object.Name}}!]!
+  {{lcFirst $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): {{$object.Name}}QueryResult!
 }
 
 type Update{{$object.Name}}Payload{
-  {{lcFirst  $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): [{{$object.Name}}!]!
+  {{lcFirst  $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): {{$object.Name}}QueryResult!
   count: Int!
 }
 
 type Delete{{$object.Name}}Payload{
-  {{lcFirst $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): [{{$object.Name}}!]!
+  {{lcFirst $object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int): {{$object.Name}}QueryResult!
   count: Int!
   msg: String
 }
@@ -134,6 +133,13 @@ enum {{$object.Name}}Orderable {
   {{- end}}
 }
 
+{{- range $m2mKey, $m2mEntity := $object.Many2ManyRefEntities }}
+{{$refType := $root.List.PrimaryEntityOfObject $m2mEntity.GqlTypeName}}
+input {{$m2mEntity.GqlTypeName}}Ref2{{$object.Name}}sInput{
+  filter: {{$object.Name}}FiltersInput!
+  set: [{{$refType.GqlTypeName}}!]!
+}
+{{- end}}
 input {{$object.Name}}Order{
   asc: {{$object.Name}}Orderable
   desc: {{$object.Name}}Orderable
@@ -173,6 +179,9 @@ extend type Query {
 {{- end}}
 {{- if $object.SQLDirective.HasMutation}}
 extend type Mutation {
+{{- range $m2mKey, $m2mEntity := $object.Many2ManyRefEntities }}
+  add{{$m2mEntity.GqlTypeName}}2{{$object.Name}}s(input:{{$m2mEntity.GqlTypeName}}Ref2{{$object.Name}}sInput!): Update{{$object.Name}}Payload
+{{- end}}
   {{- if $object.SQLDirective.Mutation.Add}}
   add{{$object.Name}}(input: [{{$object.Name}}Input!]!): Add{{$object.Name}}Payload
   {{- end}}

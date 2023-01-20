@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fasibio/gqlgensql/graph/generated"
 	"github.com/fasibio/gqlgensql/graph/model"
 	"github.com/fasibio/gqlgensql/plugin/gqlgensql/runtimehelper"
 	"gorm.io/gorm/clause"
@@ -15,7 +16,7 @@ import (
 
 func (r *queryResolver) GetCompany(ctx context.Context, id int) (*model.Company, error) {
 	var res model.Company
-	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx)).First(&res, id)
+	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "Company")).First(&res, id)
 	return &res, d.Error
 }
 
@@ -23,9 +24,11 @@ func (r *queryResolver) GetCompany(ctx context.Context, id int) (*model.Company,
 func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error) {
 	var res []*model.Company
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx).SubTables[0])
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
-	db.Where(sql, arguments...)
+	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	if filter != nil {
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		db.Where(sql, arguments...)
+	}
 
 	if order != nil {
 		if order.Asc != nil {
@@ -50,6 +53,27 @@ func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyF
 		TotalCount: int(total),
 	}, d.Error
 }
+func (r *Resolver) AddCompanyPayload() generated.AddCompanyPayloadResolver {
+	return &companyPayloadResolver[*model.AddCompanyPayload]{r}
+}
+func (r *Resolver) DeleteCompanyPayload() generated.DeleteCompanyPayloadResolver {
+	return &companyPayloadResolver[*model.DeleteCompanyPayload]{r}
+}
+func (r *Resolver) UpdateCompanyPayload() generated.UpdateCompanyPayloadResolver {
+	return &companyPayloadResolver[*model.UpdateCompanyPayload]{r}
+}
+
+type companyPayload interface {
+	*model.AddCompanyPayload | *model.DeleteCompanyPayload | *model.UpdateCompanyPayload
+}
+
+type companyPayloadResolver[T companyPayload] struct {
+	*Resolver
+}
+
+func (r *companyPayloadResolver[T]) Company(ctx context.Context, obj T, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error) {
+	return r.Query().QueryCompany(ctx, filter, order, first, offset)
+}
 
 // AddCompany is the resolver for the addCompany field.
 func (r *mutationResolver) AddCompany(ctx context.Context, input []*model.CompanyInput) (*model.AddCompanyPayload, error) {
@@ -63,19 +87,130 @@ func (r *mutationResolver) AddCompany(ctx context.Context, input []*model.Compan
 
 // UpdateCompany is the resolver for the updateCompany field.
 func (r *mutationResolver) UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error) {
-	panic(fmt.Errorf("not implemented: UpdateCompany - updateCompany"))
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.Company{}
+	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
+	return &model.UpdateCompanyPayload{
+		Count: int(res.RowsAffected),
+	}, res.Error
 }
 
 // DeleteCompany is the resolver for the deleteCompany field.
 func (r *mutationResolver) DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error) {
-	panic(fmt.Errorf("not implemented: DeleteCompany - deleteCompany"))
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.Company{}
+	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
+	return &model.DeleteCompanyPayload{
+		Count: int(res.RowsAffected),
+		Msg:   &msg,
+	}, res.Error
+}
+
+// GetTodo is the resolver for the getTodo field.
+
+func (r *queryResolver) GetTodo(ctx context.Context, id int) (*model.Todo, error) {
+	var res model.Todo
+	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "Todo")).First(&res, id)
+	return &res, d.Error
+}
+
+// QueryTodo is the resolver for the queryTodo field.
+func (r *queryResolver) QueryTodo(ctx context.Context, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error) {
+	var res []*model.Todo
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
+	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	if filter != nil {
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		db.Where(sql, arguments...)
+	}
+
+	if order != nil {
+		if order.Asc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s asc", tableName, order.Asc))
+		}
+		if order.Desc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s desc", tableName, order.Desc))
+		}
+	}
+	var total int64
+	db.Model(res).Count(&total)
+	if first != nil {
+		db = db.Limit(*first)
+	}
+	if offset != nil {
+		db = db.Offset(*offset)
+	}
+	d := db.Find(&res)
+	return &model.TodoQueryResult{
+		Data:       res,
+		Count:      len(res),
+		TotalCount: int(total),
+	}, d.Error
+}
+func (r *Resolver) AddTodoPayload() generated.AddTodoPayloadResolver {
+	return &todoPayloadResolver[*model.AddTodoPayload]{r}
+}
+func (r *Resolver) DeleteTodoPayload() generated.DeleteTodoPayloadResolver {
+	return &todoPayloadResolver[*model.DeleteTodoPayload]{r}
+}
+func (r *Resolver) UpdateTodoPayload() generated.UpdateTodoPayloadResolver {
+	return &todoPayloadResolver[*model.UpdateTodoPayload]{r}
+}
+
+type todoPayload interface {
+	*model.AddTodoPayload | *model.DeleteTodoPayload | *model.UpdateTodoPayload
+}
+
+type todoPayloadResolver[T todoPayload] struct {
+	*Resolver
+}
+
+func (r *todoPayloadResolver[T]) Todo(ctx context.Context, obj T, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error) {
+	return r.Query().QueryTodo(ctx, filter, order, first, offset)
+}
+
+// AddTodo is the resolver for the addTodo field.
+func (r *mutationResolver) AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error) {
+	obj := make([]model.Todo, len(input))
+	for i, v := range input {
+		obj[i] = v.MergeToType()
+	}
+	res := r.Sql.Db.Omit(clause.Associations).Create(&obj)
+	return &model.AddTodoPayload{}, res.Error
+}
+
+// UpdateTodo is the resolver for the updateTodo field.
+func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error) {
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.Todo{}
+	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
+	return &model.UpdateTodoPayload{
+		Count: int(res.RowsAffected),
+	}, res.Error
+}
+
+// DeleteTodo is the resolver for the deleteTodo field.
+func (r *mutationResolver) DeleteTodo(ctx context.Context, filter model.TodoFiltersInput) (*model.DeleteTodoPayload, error) {
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.Todo{}
+	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
+	return &model.DeleteTodoPayload{
+		Count: int(res.RowsAffected),
+		Msg:   &msg,
+	}, res.Error
 }
 
 // GetUser is the resolver for the getUser field.
 
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
 	var res model.User
-	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx)).First(&res, id)
+	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "User")).First(&res, id)
 	return &res, d.Error
 }
 
@@ -83,9 +218,11 @@ func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error
 func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error) {
 	var res []*model.User
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx).SubTables[0])
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
-	db.Where(sql, arguments...)
+	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	if filter != nil {
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		db.Where(sql, arguments...)
+	}
 
 	if order != nil {
 		if order.Asc != nil {
@@ -110,6 +247,51 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilters
 		TotalCount: int(total),
 	}, d.Error
 }
+func (r *Resolver) AddUserPayload() generated.AddUserPayloadResolver {
+	return &userPayloadResolver[*model.AddUserPayload]{r}
+}
+func (r *Resolver) DeleteUserPayload() generated.DeleteUserPayloadResolver {
+	return &userPayloadResolver[*model.DeleteUserPayload]{r}
+}
+func (r *Resolver) UpdateUserPayload() generated.UpdateUserPayloadResolver {
+	return &userPayloadResolver[*model.UpdateUserPayload]{r}
+}
+
+type userPayload interface {
+	*model.AddUserPayload | *model.DeleteUserPayload | *model.UpdateUserPayload
+}
+
+type userPayloadResolver[T userPayload] struct {
+	*Resolver
+}
+
+func (r *userPayloadResolver[T]) User(ctx context.Context, obj T, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error) {
+	return r.Query().QueryUser(ctx, filter, order, first, offset)
+}
+func (r *mutationResolver) AddTodo2Users(ctx context.Context, input model.TodoRef2UsersInput) (*model.UpdateUserPayload, error) {
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	db := r.Sql.Db.Model(&model.User{}).Where(sql, arguments...)
+	var res []*model.User
+	db.Find(&res)
+	type UserTodos struct {
+		UserID int
+		TodoID int
+	}
+	resIds := make([]map[string]interface{}, 0)
+	for _, v := range res {
+		for _, v1 := range input.Set {
+			tmp := make(map[string]interface{})
+			tmp["UserID"] = v.ID
+			tmp["TodoID"] = v1
+			resIds = append(resIds, tmp)
+		}
+	}
+	d := r.Sql.Db.Model(&UserTodos{}).Create(resIds)
+	return &model.UpdateUserPayload{
+		Count: int(d.RowsAffected),
+	}, d.Error
+}
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input []*model.UserInput) (*model.AddUserPayload, error) {
@@ -123,10 +305,24 @@ func (r *mutationResolver) AddUser(ctx context.Context, input []*model.UserInput
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserPayload, error) {
-	panic(fmt.Errorf("not implemented: UpdateUser - updateUser"))
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.User{}
+	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
+	return &model.UpdateUserPayload{
+		Count: int(res.RowsAffected),
+	}, res.Error
 }
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, filter model.UserFiltersInput) (*model.DeleteUserPayload, error) {
-	panic(fmt.Errorf("not implemented: DeleteUser - deleteUser"))
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	obj := model.User{}
+	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
+	return &model.DeleteUserPayload{
+		Count: int(res.RowsAffected),
+		Msg:   &msg,
+	}, res.Error
 }

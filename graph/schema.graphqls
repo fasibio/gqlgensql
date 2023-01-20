@@ -7,6 +7,7 @@ type User @SQL{
   name: String!
   companyID: Int
   company: Company
+  todoList: [Todo!]!@SQL_GORM(value:"many2many:user_todos")
 }
 
 type Company @SQL{
@@ -17,14 +18,21 @@ type Company @SQL{
   motherCompany: Company
 }
 
+type Todo @SQL {
+  id: Int! @SQL_PRIMARY
+  title: String!
+  description: String!
+  done: Boolean!
+}
+
 
 # type Cat @SQL(){
 #   id: Int! @SQL_PRIMARY
 #   name: String! @SQL_INDEX
 #   alive: Boolean!
 #   age: Int!
-#   ownerId: Int!
-#   ownerName: User! @SQL_GORM(value:"foreignKey:OwnerID")
+#   ownerID: Int!
+#   ownerName: User!
 #   description: String!
 # }
 
@@ -80,9 +88,14 @@ type Company @SQL{
 type Query {
   a: String
 }
+# input AddTodoRef2UsersInput {
+#   filter: UserFiltersInput!
+#   set: [int!]!
+# }
 
 type Mutation {
-  b : Int
+  # addTodo2Users(input:AddTodoRef2UsersInput):UpdateUserPayload
+  b: Int
 }
 
 directive @validated on FIELD_DEFINITION
