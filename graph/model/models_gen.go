@@ -122,17 +122,22 @@ type IntFilterInput struct {
 	Between *IntFilterBetween `json:"between"`
 }
 
+type SQLCreateExtension struct {
+	Value        bool     `json:"value"`
+	DirectiveExt []string `json:"directiveExt"`
+}
+
 type SQLMutationParams struct {
-	Add          *bool    `json:"add"`
-	Update       *bool    `json:"update"`
-	Delete       *bool    `json:"delete"`
-	DirectiveEtx []string `json:"directiveEtx"`
+	Add          *SQLCreateExtension `json:"add"`
+	Update       *SQLCreateExtension `json:"update"`
+	Delete       *SQLCreateExtension `json:"delete"`
+	DirectiveExt []string            `json:"directiveExt"`
 }
 
 type SQLQueryParams struct {
-	Get          *bool    `json:"get"`
-	Query        *bool    `json:"query"`
-	DirectiveEtx []string `json:"directiveEtx"`
+	Get          *SQLCreateExtension `json:"get"`
+	Query        *SQLCreateExtension `json:"query"`
+	DirectiveExt []string            `json:"directiveExt"`
 }
 
 type StringFilterInput struct {
@@ -155,10 +160,11 @@ type StringFilterInput struct {
 }
 
 type Todo struct {
-	ID          int    `json:"id" gorm:"primaryKey"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
+	ID          int     `json:"id" gorm:"primaryKey"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Done        bool    `json:"done"`
+	Users       []*User `json:"users" gorm:"many2many:user_todos"`
 }
 
 type TodoFiltersInput struct {
@@ -166,16 +172,18 @@ type TodoFiltersInput struct {
 	Title       *StringFilterInput  `json:"title"`
 	Description *StringFilterInput  `json:"description"`
 	Done        *BooleanFilterInput `json:"done"`
+	Users       *UserFiltersInput   `json:"users"`
 	And         []*TodoFiltersInput `json:"and"`
 	Or          []*TodoFiltersInput `json:"or"`
 	Not         *TodoFiltersInput   `json:"not"`
 }
 
 type TodoInput struct {
-	ID          int    `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Done        bool   `json:"done"`
+	ID          int          `json:"id"`
+	Title       string       `json:"title"`
+	Description string       `json:"description"`
+	Done        bool         `json:"done"`
+	Users       []*UserInput `json:"users"`
 }
 
 type TodoOrder struct {
@@ -184,10 +192,11 @@ type TodoOrder struct {
 }
 
 type TodoPatch struct {
-	ID          *int    `json:"id"`
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Done        *bool   `json:"done"`
+	ID          *int         `json:"id"`
+	Title       *string      `json:"title"`
+	Description *string      `json:"description"`
+	Done        *bool        `json:"done"`
+	Users       []*UserPatch `json:"users"`
 }
 
 type TodoQueryResult struct {
@@ -282,6 +291,11 @@ type UserQueryResult struct {
 	Data       []*User `json:"data"`
 	Count      int     `json:"count"`
 	TotalCount int     `json:"totalCount"`
+}
+
+type UserRef2TodosInput struct {
+	Filter *TodoFiltersInput `json:"filter"`
+	Set    []int             `json:"set"`
 }
 
 type UserWhere struct {

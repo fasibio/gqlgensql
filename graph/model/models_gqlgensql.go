@@ -66,11 +66,20 @@ func (d *TodoPatch) MergeToType() Todo {
 	if d.Done != nil {
 		tmpDone = *d.Done
 	}
+	var tmpUsers []*User
+	if d.Users != nil {
+		tmpUsers = make([]*User, len(d.Users))
+		for _, v := range d.Users {
+			tmp := v.MergeToType()
+			tmpUsers = append(tmpUsers, &tmp)
+		}
+	}
 	return Todo{
 		ID:          tmpID,
 		Title:       tmpTitle,
 		Description: tmpDescription,
 		Done:        tmpDone,
+		Users:       tmpUsers,
 	}
 }
 
@@ -83,11 +92,20 @@ func (d *TodoInput) MergeToType() Todo {
 	tmpDescription := d.Description
 
 	tmpDone := d.Done
+	var tmpUsers []*User
+	if d.Users != nil {
+		tmpUsers = make([]*User, len(d.Users))
+		for _, v := range d.Users {
+			tmp := v.MergeToType()
+			tmpUsers = append(tmpUsers, &tmp)
+		}
+	}
 	return Todo{
 		ID:          tmpID,
 		Title:       tmpTitle,
 		Description: tmpDescription,
 		Done:        tmpDone,
+		Users:       tmpUsers,
 	}
 }
 

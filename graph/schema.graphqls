@@ -2,7 +2,31 @@
 #
 # https://gqlgen.com/getting-started/
 
-type User @SQL{
+type User @SQL(query: {
+  directiveExt: ["@A"]
+  get: {
+    value: true
+    directiveExt: ["@B"]
+  }
+  query: {
+    value: true
+    directiveExt: ["@C"]
+  }
+}, mutation: {
+  directiveExt: ["@D"]
+  add: {
+    value: true
+    directiveExt: ["@E"]
+  }
+  update: {
+    value: true
+    directiveExt: ["@F"]
+  }
+  delete: {
+    value: true
+    directiveExt: ["@G"]
+  }
+}){
   id: Int! @SQL_PRIMARY
   name: String!
   companyID: Int
@@ -23,6 +47,7 @@ type Todo @SQL {
   title: String!
   description: String!
   done: Boolean!
+  users: [User]@SQL_GORM(value:"many2many:user_todos")
 }
 
 
@@ -99,3 +124,10 @@ type Mutation {
 }
 
 directive @validated on FIELD_DEFINITION
+directive @A on FIELD_DEFINITION
+directive @B on FIELD_DEFINITION
+directive @C on FIELD_DEFINITION
+directive @D on FIELD_DEFINITION
+directive @E on FIELD_DEFINITION
+directive @F on FIELD_DEFINITION
+directive @G on FIELD_DEFINITION

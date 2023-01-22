@@ -26,7 +26,7 @@ func (r *queryResolver) Query{{$object.Name}}(ctx context.Context, filter *model
   tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db,runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil{
-		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
 	}
 
@@ -74,7 +74,7 @@ func (r *{{lcFirst $object.Name}}PayloadResolver[T]) {{$object.Name}}(ctx contex
 		{{- range $m2mKey, $m2mEntity := $object.Many2ManyRefEntities }}
 func (r *mutationResolver) Add{{$m2mEntity.GqlTypeName}}2{{$object.Name}}s(ctx context.Context, input model.{{$m2mEntity.GqlTypeName}}Ref2{{$object.Name}}sInput) (*model.Update{{$object.Name}}Payload, error){
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	db := r.Sql.Db.Model(&model.{{$object.Name}}{}).Where(sql, arguments...)
 	var res []*model.{{$object.Name}}
 	db.Find(&res)
@@ -115,7 +115,7 @@ func (r *mutationResolver) Add{{$object.Name}}(ctx context.Context, input []*mod
 // Update{{$object.Name}} is the resolver for the update{{$object.Name}} field.
 func (r *mutationResolver) Update{{$object.Name}}(ctx context.Context, input model.Update{{$object.Name}}Input) (*model.Update{{$object.Name}}Payload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.{{$object.Name}}{}
 	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
 	return &model.Update{{$object.Name}}Payload{
@@ -127,7 +127,7 @@ func (r *mutationResolver) Update{{$object.Name}}(ctx context.Context, input mod
 // Delete{{$object.Name}} is the resolver for the delete{{$object.Name}} field.
 func (r *mutationResolver) Delete{{$object.Name}}(ctx context.Context, filter model.{{$object.Name}}FiltersInput) (*model.Delete{{$object.Name}}Payload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.{{$object.Name}}{}
 	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
 	msg := fmt.Sprintf("%d rows deleted",res.RowsAffected)

@@ -26,7 +26,7 @@ func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyF
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
-		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
 	}
 
@@ -88,7 +88,7 @@ func (r *mutationResolver) AddCompany(ctx context.Context, input []*model.Compan
 // UpdateCompany is the resolver for the updateCompany field.
 func (r *mutationResolver) UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Company{}
 	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
 	return &model.UpdateCompanyPayload{
@@ -99,7 +99,7 @@ func (r *mutationResolver) UpdateCompany(ctx context.Context, input model.Update
 // DeleteCompany is the resolver for the deleteCompany field.
 func (r *mutationResolver) DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Company{}
 	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
 	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
@@ -123,7 +123,7 @@ func (r *queryResolver) QueryTodo(ctx context.Context, filter *model.TodoFilters
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
-		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
 	}
 
@@ -171,6 +171,30 @@ type todoPayloadResolver[T todoPayload] struct {
 func (r *todoPayloadResolver[T]) Todo(ctx context.Context, obj T, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error) {
 	return r.Query().QueryTodo(ctx, filter, order, first, offset)
 }
+func (r *mutationResolver) AddUser2Todos(ctx context.Context, input model.UserRef2TodosInput) (*model.UpdateTodoPayload, error) {
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	db := r.Sql.Db.Model(&model.Todo{}).Where(sql, arguments...)
+	var res []*model.Todo
+	db.Find(&res)
+	type UserTodos struct {
+		TodoID int
+		UserID int
+	}
+	resIds := make([]map[string]interface{}, 0)
+	for _, v := range res {
+		for _, v1 := range input.Set {
+			tmp := make(map[string]interface{})
+			tmp["TodoID"] = v.ID
+			tmp["UserID"] = v1
+			resIds = append(resIds, tmp)
+		}
+	}
+	d := r.Sql.Db.Model(&UserTodos{}).Create(resIds)
+	return &model.UpdateTodoPayload{
+		Count: int(d.RowsAffected),
+	}, d.Error
+}
 
 // AddTodo is the resolver for the addTodo field.
 func (r *mutationResolver) AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error) {
@@ -185,7 +209,7 @@ func (r *mutationResolver) AddTodo(ctx context.Context, input []*model.TodoInput
 // UpdateTodo is the resolver for the updateTodo field.
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Todo{}
 	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
 	return &model.UpdateTodoPayload{
@@ -196,7 +220,7 @@ func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTod
 // DeleteTodo is the resolver for the deleteTodo field.
 func (r *mutationResolver) DeleteTodo(ctx context.Context, filter model.TodoFiltersInput) (*model.DeleteTodoPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Todo{}
 	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
 	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
@@ -220,7 +244,7 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilters
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
 	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
-		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "OR")
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
 	}
 
@@ -270,7 +294,7 @@ func (r *userPayloadResolver[T]) User(ctx context.Context, obj T, filter *model.
 }
 func (r *mutationResolver) AddTodo2Users(ctx context.Context, input model.TodoRef2UsersInput) (*model.UpdateUserPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	db := r.Sql.Db.Model(&model.User{}).Where(sql, arguments...)
 	var res []*model.User
 	db.Find(&res)
@@ -306,7 +330,7 @@ func (r *mutationResolver) AddUser(ctx context.Context, input []*model.UserInput
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.User{}
 	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
 	return &model.UpdateUserPayload{
@@ -317,7 +341,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUse
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, filter model.UserFiltersInput) (*model.DeleteUserPayload, error) {
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "OR")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.User{}
 	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
 	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)

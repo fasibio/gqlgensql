@@ -2,6 +2,7 @@ package structure
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -25,6 +26,24 @@ func (e Entity) GormDirectiveValue() string {
 		return ""
 	}
 	return d.Arguments.ForName("value").Value.Raw
+}
+
+func (e Entity) HasMany2ManyDirective() bool {
+	return e.HasGormDirective() && strings.Contains(e.GormDirectiveValue(), "many2many:")
+}
+
+func (e Entity) Many2ManyDirectiveTable() string {
+	if !e.HasMany2ManyDirective() {
+		return ""
+	}
+	gs := strings.Split(e.GormDirectiveValue(), ";")
+	table := ""
+	for _, gd := range gs {
+		if strings.Contains(gd, "many2many:") {
+			table = strings.Replace(gd, "many2many:", "", 1)
+		}
+	}
+	return table
 }
 
 func (e Entity) Ignore() bool {

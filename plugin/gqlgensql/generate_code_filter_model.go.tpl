@@ -42,7 +42,12 @@ func (d *{{$object.Name}}FiltersInput) {{$methodeName}}(db *gorm.DB, alias strin
     res = append(res, d.{{$entityGoName}}.{{$methodeName}}(db, fmt.Sprintf("%s.%s",alias,"{{snakecase $entityGoName}}"))...)
     {{- else}}
     tableName := db.Config.NamingStrategy.TableName("{{$entityGoName}}")
+			{{- if $entity.HasMany2ManyDirective}}
+			{{- $m2mTableName := $entity.Many2ManyDirectiveTable}}
+		db := db.Joins(fmt.Sprintf("JOIN {{$m2mTableName}} ON {{$m2mTableName}}.{{$object.Name | snakecase}}_{{$root.PrimaryKeyOfObject $object.Name}} = %s.{{$root.PrimaryKeyOfObject $object.Name}} JOIN %s ON {{$m2mTableName}}.{{$entity.GqlTypeName | snakecase}}_{{$root.PrimaryKeyOfObject $entity.GqlTypeName | snakecase}} = %s.{{$root.PrimaryKeyOfObject $object.Name}}", alias, tableName,tableName))
+			{{- else}}
     db := db.Joins(fmt.Sprintf("JOIN %s ON %s.{{$root.PrimaryKeyOfObject $entity.GqlTypeName | snakecase}} = %s.{{$object.ForeignNameKeyName $entity.GqlTypeName}}",tableName, tableName, alias))
+			{{- end}}
     res = append(res, d.{{$entityGoName}}.{{$methodeName}}(db, tableName)...)
     {{- end}}
 	}

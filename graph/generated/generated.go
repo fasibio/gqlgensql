@@ -50,6 +50,13 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	A         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	B         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	C         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	D         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	E         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	F         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	G         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 	Validated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
@@ -103,6 +110,7 @@ type ComplexityRoot struct {
 		AddTodo       func(childComplexity int, input []*model.TodoInput) int
 		AddTodo2Users func(childComplexity int, input model.TodoRef2UsersInput) int
 		AddUser       func(childComplexity int, input []*model.UserInput) int
+		AddUser2Todos func(childComplexity int, input model.UserRef2TodosInput) int
 		B             func(childComplexity int) int
 		DeleteCompany func(childComplexity int, filter model.CompanyFiltersInput) int
 		DeleteTodo    func(childComplexity int, filter model.TodoFiltersInput) int
@@ -127,6 +135,7 @@ type ComplexityRoot struct {
 		Done        func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Title       func(childComplexity int) int
+		Users       func(childComplexity int) int
 	}
 
 	TodoQueryResult struct {
@@ -188,6 +197,7 @@ type MutationResolver interface {
 	AddCompany(ctx context.Context, input []*model.CompanyInput) (*model.AddCompanyPayload, error)
 	UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error)
 	DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error)
+	AddUser2Todos(ctx context.Context, input model.UserRef2TodosInput) (*model.UpdateTodoPayload, error)
 	AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error)
 	UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error)
 	DeleteTodo(ctx context.Context, filter model.TodoFiltersInput) (*model.DeleteTodoPayload, error)
@@ -448,6 +458,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddUser(childComplexity, args["input"].([]*model.UserInput)), true
 
+	case "Mutation.addUser2Todos":
+		if e.complexity.Mutation.AddUser2Todos == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addUser2Todos_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddUser2Todos(childComplexity, args["input"].(model.UserRef2TodosInput)), true
+
 	case "Mutation.b":
 		if e.complexity.Mutation.B == nil {
 			break
@@ -634,6 +656,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Title(childComplexity), true
 
+	case "Todo.users":
+		if e.complexity.Todo.Users == nil {
+			break
+		}
+
+		return e.complexity.Todo.Users(childComplexity), true
+
 	case "TodoQueryResult.count":
 		if e.complexity.TodoQueryResult.Count == nil {
 			break
@@ -785,6 +814,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputIDFilterInput,
 		ec.unmarshalInputIntFilterBetween,
 		ec.unmarshalInputIntFilterInput,
+		ec.unmarshalInputSqlCreateExtension,
 		ec.unmarshalInputSqlMutationParams,
 		ec.unmarshalInputSqlQueryParams,
 		ec.unmarshalInputStringFilterInput,
@@ -801,6 +831,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUserInput,
 		ec.unmarshalInputUserOrder,
 		ec.unmarshalInputUserPatch,
+		ec.unmarshalInputUserRef2TodosInput,
 		ec.unmarshalInputUserWhere,
 	)
 	first := true
@@ -866,7 +897,31 @@ var sources = []*ast.Source{
 #
 # https://gqlgen.com/getting-started/
 
-type User @SQL{
+type User @SQL(query: {
+  directiveExt: ["@A"]
+  get: {
+    value: true
+    directiveExt: ["@B"]
+  }
+  query: {
+    value: true
+    directiveExt: ["@C"]
+  }
+}, mutation: {
+  directiveExt: ["@D"]
+  add: {
+    value: true
+    directiveExt: ["@E"]
+  }
+  update: {
+    value: true
+    directiveExt: ["@F"]
+  }
+  delete: {
+    value: true
+    directiveExt: ["@G"]
+  }
+}){
   id: Int! @SQL_PRIMARY
   name: String!
   companyID: Int
@@ -887,6 +942,7 @@ type Todo @SQL {
   title: String!
   description: String!
   done: Boolean!
+  users: [User]@SQL_GORM(value:"many2many:user_todos")
 }
 
 
@@ -962,20 +1018,32 @@ type Mutation {
   b: Int
 }
 
-directive @validated on FIELD_DEFINITION`, BuiltIn: false},
+directive @validated on FIELD_DEFINITION
+directive @A on FIELD_DEFINITION
+directive @B on FIELD_DEFINITION
+directive @C on FIELD_DEFINITION
+directive @D on FIELD_DEFINITION
+directive @E on FIELD_DEFINITION
+directive @F on FIELD_DEFINITION
+directive @G on FIELD_DEFINITION`, BuiltIn: false},
 	{Name: "../../gqlgensql/directive.graphql", Input: `
 
+	input SqlCreateExtension {
+		value: Boolean!
+		directiveExt: [String!]
+	}
+
 	input SqlMutationParams {
-		add: Boolean
-		update: Boolean
-		delete: Boolean
-		directiveEtx: [String!]
+		add: SqlCreateExtension
+		update: SqlCreateExtension
+		delete: SqlCreateExtension
+		directiveExt: [String!]
 	}
 
 	input SqlQueryParams {
-		get: Boolean
-		query: Boolean
-		directiveEtx: [String!]
+		get: SqlCreateExtension
+		query: SqlCreateExtension
+		directiveExt: [String!]
 	}
 	directive @SQL(query:SqlQueryParams, mutation: SqlMutationParams ) on OBJECT
 	directive @SQL_PRIMARY on FIELD_DEFINITION
@@ -1140,9 +1208,9 @@ extend type Query {
   queryCompany(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int ): CompanyQueryResult 
 }
 extend type Mutation {
-  addCompany(input: [CompanyInput!]!): AddCompanyPayload
-  updateCompany(input: UpdateCompanyInput!): UpdateCompanyPayload
-  deleteCompany(filter: CompanyFiltersInput!): DeleteCompanyPayload
+  addCompany(input: [CompanyInput!]!): AddCompanyPayload 
+  updateCompany(input: UpdateCompanyInput!): UpdateCompanyPayload 
+  deleteCompany(filter: CompanyFiltersInput!): DeleteCompanyPayload 
 }
 
 input TodoInput{
@@ -1150,6 +1218,7 @@ input TodoInput{
   title: String!
   description: String!
   done: Boolean!
+  users: [UserInput!]
 }
 
 input TodoPatch{
@@ -1157,6 +1226,7 @@ input TodoPatch{
   title: String
   description: String
   done: Boolean
+  users: [UserPatch!]
 }
 
 input UpdateTodoInput{
@@ -1191,6 +1261,11 @@ enum TodoOrderable {
   description
   done
 }
+
+input UserRef2TodosInput{
+  filter: TodoFiltersInput!
+  set: [Int!]!
+}
 input TodoOrder{
   asc: TodoOrderable
   desc: TodoOrderable
@@ -1201,6 +1276,7 @@ input TodoFiltersInput{
   title: StringFilterInput
   description: StringFilterInput
   done: BooleanFilterInput
+  users:UserFiltersInput
   and: [TodoFiltersInput]
   or: [TodoFiltersInput]
   not: TodoFiltersInput
@@ -1217,9 +1293,10 @@ extend type Query {
   queryTodo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int ): TodoQueryResult 
 }
 extend type Mutation {
-  addTodo(input: [TodoInput!]!): AddTodoPayload
-  updateTodo(input: UpdateTodoInput!): UpdateTodoPayload
-  deleteTodo(filter: TodoFiltersInput!): DeleteTodoPayload
+  addUser2Todos(input:UserRef2TodosInput!): UpdateTodoPayload 
+  addTodo(input: [TodoInput!]!): AddTodoPayload 
+  updateTodo(input: UpdateTodoInput!): UpdateTodoPayload 
+  deleteTodo(filter: TodoFiltersInput!): DeleteTodoPayload 
 }
 
 input UserInput{
@@ -1296,14 +1373,14 @@ input UserWhere{
   companyID: Int
 }
 extend type Query {
-  getUser(id: Int!): User 
-  queryUser(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int ): UserQueryResult 
+  getUser(id: Int!): User @A @B
+  queryUser(filter: UserFiltersInput, order: UserOrder, first: Int, offset: Int ): UserQueryResult @A @C
 }
 extend type Mutation {
-  addTodo2Users(input:TodoRef2UsersInput!): UpdateUserPayload
-  addUser(input: [UserInput!]!): AddUserPayload
-  updateUser(input: UpdateUserInput!): UpdateUserPayload
-  deleteUser(filter: UserFiltersInput!): DeleteUserPayload
+  addTodo2Users(input:TodoRef2UsersInput!): UpdateUserPayload @D @E
+  addUser(input: [UserInput!]!): AddUserPayload @D @E
+  updateUser(input: UpdateUserInput!): UpdateUserPayload @D @F
+  deleteUser(filter: UserFiltersInput!): DeleteUserPayload @D @G
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -1601,6 +1678,21 @@ func (ec *executionContext) field_Mutation_addTodo_args(ctx context.Context, raw
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addUser2Todos_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UserRef2TodosInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUserRef2TodosInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserRef2TodosInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3279,6 +3371,64 @@ func (ec *executionContext) fieldContext_Mutation_deleteCompany(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addUser2Todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addUser2Todos(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddUser2Todos(rctx, fc.Args["input"].(model.UserRef2TodosInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateTodoPayload)
+	fc.Result = res
+	return ec.marshalOUpdateTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addUser2Todos(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "todo":
+				return ec.fieldContext_UpdateTodoPayload_todo(ctx, field)
+			case "count":
+				return ec.fieldContext_UpdateTodoPayload_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateTodoPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addUser2Todos_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_addTodo(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_addTodo(ctx, field)
 	if err != nil {
@@ -3466,8 +3616,34 @@ func (ec *executionContext) _Mutation_addTodo2Users(ctx context.Context, field g
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddTodo2Users(rctx, fc.Args["input"].(model.TodoRef2UsersInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddTodo2Users(rctx, fc.Args["input"].(model.TodoRef2UsersInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.D == nil {
+				return nil, errors.New("directive D is not implemented")
+			}
+			return ec.directives.D(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.E == nil {
+				return nil, errors.New("directive E is not implemented")
+			}
+			return ec.directives.E(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UpdateUserPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.UpdateUserPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3524,8 +3700,34 @@ func (ec *executionContext) _Mutation_addUser(ctx context.Context, field graphql
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddUser(rctx, fc.Args["input"].([]*model.UserInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddUser(rctx, fc.Args["input"].([]*model.UserInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.D == nil {
+				return nil, errors.New("directive D is not implemented")
+			}
+			return ec.directives.D(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.E == nil {
+				return nil, errors.New("directive E is not implemented")
+			}
+			return ec.directives.E(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.AddUserPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.AddUserPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3580,8 +3782,34 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["input"].(model.UpdateUserInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUser(rctx, fc.Args["input"].(model.UpdateUserInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.D == nil {
+				return nil, errors.New("directive D is not implemented")
+			}
+			return ec.directives.D(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.F == nil {
+				return nil, errors.New("directive F is not implemented")
+			}
+			return ec.directives.F(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UpdateUserPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.UpdateUserPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3638,8 +3866,34 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx, fc.Args["filter"].(model.UserFiltersInput))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUser(rctx, fc.Args["filter"].(model.UserFiltersInput))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.D == nil {
+				return nil, errors.New("directive D is not implemented")
+			}
+			return ec.directives.D(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.G == nil {
+				return nil, errors.New("directive G is not implemented")
+			}
+			return ec.directives.G(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.DeleteUserPayload); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.DeleteUserPayload`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3894,6 +4148,8 @@ func (ec *executionContext) fieldContext_Query_getTodo(ctx context.Context, fiel
 				return ec.fieldContext_Todo_description(ctx, field)
 			case "done":
 				return ec.fieldContext_Todo_done(ctx, field)
+			case "users":
+				return ec.fieldContext_Todo_users(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -3985,8 +4241,34 @@ func (ec *executionContext) _Query_getUser(ctx context.Context, field graphql.Co
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUser(rctx, fc.Args["id"].(int))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetUser(rctx, fc.Args["id"].(int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.A == nil {
+				return nil, errors.New("directive A is not implemented")
+			}
+			return ec.directives.A(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.B == nil {
+				return nil, errors.New("directive B is not implemented")
+			}
+			return ec.directives.B(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4049,8 +4331,34 @@ func (ec *executionContext) _Query_queryUser(ctx context.Context, field graphql.
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().QueryUser(rctx, fc.Args["filter"].(*model.UserFiltersInput), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().QueryUser(rctx, fc.Args["filter"].(*model.UserFiltersInput), fc.Args["order"].(*model.UserOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.A == nil {
+				return nil, errors.New("directive A is not implemented")
+			}
+			return ec.directives.A(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.C == nil {
+				return nil, errors.New("directive C is not implemented")
+			}
+			return ec.directives.C(ctx, nil, directive1)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UserQueryResult); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/fasibio/gqlgensql/graph/model.UserQueryResult`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4401,6 +4709,59 @@ func (ec *executionContext) fieldContext_Todo_done(ctx context.Context, field gr
 	return fc, nil
 }
 
+func (ec *executionContext) _Todo_users(ctx context.Context, field graphql.CollectedField, obj *model.Todo) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Todo_users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Users, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Todo_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Todo",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			case "companyID":
+				return ec.fieldContext_User_companyID(ctx, field)
+			case "company":
+				return ec.fieldContext_User_company(ctx, field)
+			case "todoList":
+				return ec.fieldContext_User_todoList(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TodoQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.TodoQueryResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TodoQueryResult_data(ctx, field)
 	if err != nil {
@@ -4448,6 +4809,8 @@ func (ec *executionContext) fieldContext_TodoQueryResult_data(ctx context.Contex
 				return ec.fieldContext_Todo_description(ctx, field)
 			case "done":
 				return ec.fieldContext_Todo_done(ctx, field)
+			case "users":
+				return ec.fieldContext_Todo_users(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -5093,6 +5456,8 @@ func (ec *executionContext) fieldContext_User_todoList(ctx context.Context, fiel
 				return ec.fieldContext_Todo_description(ctx, field)
 			case "done":
 				return ec.fieldContext_Todo_done(ctx, field)
+			case "users":
+				return ec.fieldContext_Todo_users(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Todo", field.Name)
 		},
@@ -7605,6 +7970,42 @@ func (ec *executionContext) unmarshalInputIntFilterInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSqlCreateExtension(ctx context.Context, obj interface{}) (model.SQLCreateExtension, error) {
+	var it model.SQLCreateExtension
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"value", "directiveExt"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "directiveExt":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directiveExt"))
+			it.DirectiveExt, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context, obj interface{}) (model.SQLMutationParams, error) {
 	var it model.SQLMutationParams
 	asMap := map[string]interface{}{}
@@ -7612,7 +8013,7 @@ func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"add", "update", "delete", "directiveEtx"}
+	fieldsInOrder := [...]string{"add", "update", "delete", "directiveExt"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7623,7 +8024,7 @@ func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("add"))
-			it.Add, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Add, err = ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7631,7 +8032,7 @@ func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("update"))
-			it.Update, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Update, err = ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7639,15 +8040,15 @@ func (ec *executionContext) unmarshalInputSqlMutationParams(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delete"))
-			it.Delete, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Delete, err = ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "directiveEtx":
+		case "directiveExt":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directiveEtx"))
-			it.DirectiveEtx, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directiveExt"))
+			it.DirectiveExt, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7664,7 +8065,7 @@ func (ec *executionContext) unmarshalInputSqlQueryParams(ctx context.Context, ob
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"get", "query", "directiveEtx"}
+	fieldsInOrder := [...]string{"get", "query", "directiveExt"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7675,7 +8076,7 @@ func (ec *executionContext) unmarshalInputSqlQueryParams(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("get"))
-			it.Get, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Get, err = ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7683,15 +8084,15 @@ func (ec *executionContext) unmarshalInputSqlQueryParams(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
-			it.Query, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			it.Query, err = ec.unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "directiveEtx":
+		case "directiveExt":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directiveEtx"))
-			it.DirectiveEtx, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("directiveExt"))
+			it.DirectiveExt, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7856,7 +8257,7 @@ func (ec *executionContext) unmarshalInputTodoFiltersInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "title", "description", "done", "and", "or", "not"}
+	fieldsInOrder := [...]string{"id", "title", "description", "done", "users", "and", "or", "not"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7892,6 +8293,14 @@ func (ec *executionContext) unmarshalInputTodoFiltersInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
 			it.Done, err = ec.unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐBooleanFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "users":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("users"))
+			it.Users, err = ec.unmarshalOUserFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserFiltersInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -7932,7 +8341,7 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	fieldsInOrder := [...]string{"id", "title", "description", "done", "users"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7968,6 +8377,14 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
 			it.Done, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "users":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("users"))
+			it.Users, err = ec.unmarshalOUserInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8020,7 +8437,7 @@ func (ec *executionContext) unmarshalInputTodoPatch(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	fieldsInOrder := [...]string{"id", "title", "description", "done", "users"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8056,6 +8473,14 @@ func (ec *executionContext) unmarshalInputTodoPatch(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
 			it.Done, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "users":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("users"))
+			it.Users, err = ec.unmarshalOUserPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatchᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8492,6 +8917,42 @@ func (ec *executionContext) unmarshalInputUserPatch(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoList"))
 			it.TodoList, err = ec.unmarshalOTodoPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoPatchᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserRef2TodosInput(ctx context.Context, obj interface{}) (model.UserRef2TodosInput, error) {
+	var it model.UserRef2TodosInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"filter", "set"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			it.Filter, err = ec.unmarshalNTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "set":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
+			it.Set, err = ec.unmarshalNInt2ᚕintᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8977,6 +9438,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_deleteCompany(ctx, field)
 			})
 
+		case "addUser2Todos":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addUser2Todos(ctx, field)
+			})
+
 		case "addTodo":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -9250,6 +9717,10 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "users":
+
+			out.Values[i] = ec._Todo_users(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10088,6 +10559,11 @@ func (ec *executionContext) unmarshalNTodoFiltersInput2githubᚗcomᚋfasibioᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNTodoFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoFiltersInput(ctx context.Context, v interface{}) (*model.TodoFiltersInput, error) {
+	res, err := ec.unmarshalInputTodoFiltersInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx context.Context, v interface{}) ([]*model.TodoInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -10235,6 +10711,11 @@ func (ec *executionContext) unmarshalNUserInput2ᚖgithubᚗcomᚋfasibioᚋgqlg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUserPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatch(ctx context.Context, v interface{}) (*model.UserPatch, error) {
+	res, err := ec.unmarshalInputUserPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNUserQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserQueryResult(ctx context.Context, sel ast.SelectionSet, v model.UserQueryResult) graphql.Marshaler {
 	return ec._UserQueryResult(ctx, sel, &v)
 }
@@ -10247,6 +10728,11 @@ func (ec *executionContext) marshalNUserQueryResult2ᚖgithubᚗcomᚋfasibioᚋ
 		return graphql.Null
 	}
 	return ec._UserQueryResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNUserRef2TodosInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserRef2TodosInput(ctx context.Context, v interface{}) (model.UserRef2TodosInput, error) {
+	res, err := ec.unmarshalInputUserRef2TodosInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -10812,6 +11298,14 @@ func (ec *executionContext) unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibio�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOSqlCreateExtension2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLCreateExtension(ctx context.Context, v interface{}) (*model.SQLCreateExtension, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSqlCreateExtension(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOSqlMutationParams2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐSQLMutationParams(ctx context.Context, v interface{}) (*model.SQLMutationParams, error) {
 	if v == nil {
 		return nil, nil
@@ -11037,6 +11531,47 @@ func (ec *executionContext) marshalOUpdateUserPayload2ᚖgithubᚗcomᚋfasibio�
 	return ec._UpdateUserPayload(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOUser2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUser2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUser(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
 func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -11072,6 +11607,26 @@ func (ec *executionContext) unmarshalOUserFiltersInput2ᚖgithubᚗcomᚋfasibio
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalOUserInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserInputᚄ(ctx context.Context, v interface{}) ([]*model.UserInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UserInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUserInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOUserOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserOrder(ctx context.Context, v interface{}) (*model.UserOrder, error) {
 	if v == nil {
 		return nil, nil
@@ -11094,6 +11649,26 @@ func (ec *executionContext) marshalOUserOrderable2ᚖgithubᚗcomᚋfasibioᚋgq
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOUserPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatchᚄ(ctx context.Context, v interface{}) ([]*model.UserPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UserPatch, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUserPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatch(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOUserPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUserPatch(ctx context.Context, v interface{}) (*model.UserPatch, error) {

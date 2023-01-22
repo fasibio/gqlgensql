@@ -93,6 +93,12 @@ func (d *TodoFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []run
 		res = append(res, d.Done.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "done"))...)
 	}
 
+	if d.Users != nil {
+		tableName := db.Config.NamingStrategy.TableName("Users")
+		db := db.Joins(fmt.Sprintf("JOIN user_todos ON user_todos.todo_id = %s.id JOIN %s ON user_todos.user_id = %s.id", alias, tableName, tableName))
+		res = append(res, d.Users.ExtendsDatabaseQuery(db, tableName)...)
+	}
+
 	return res
 }
 
@@ -139,7 +145,7 @@ func (d *UserFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []run
 
 	if d.TodoList != nil {
 		tableName := db.Config.NamingStrategy.TableName("TodoList")
-		db := db.Joins(fmt.Sprintf("JOIN %s ON %s.id = %s.todo_id", tableName, tableName, alias))
+		db := db.Joins(fmt.Sprintf("JOIN user_todos ON user_todos.user_id = %s.id JOIN %s ON user_todos.todo_id = %s.id", alias, tableName, tableName))
 		res = append(res, d.TodoList.ExtendsDatabaseQuery(db, tableName)...)
 	}
 

@@ -16,5 +16,5 @@ func NewGqlGenSqlDB(db *gorm.DB) GqlGenSqlDB {
 }
 
 func (db *GqlGenSqlDB) Init() {
-	db.Db.AutoMigrate(&model.User{}, &model.Company{}, &model.Todo{})
+	db.Db.AutoMigrate(&model.Company{}, &model.Todo{}, &model.User{})
 }

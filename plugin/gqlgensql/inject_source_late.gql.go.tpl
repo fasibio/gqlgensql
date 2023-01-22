@@ -170,26 +170,26 @@ input {{$object.Name}}Where{
 {{- if $object.SQLDirective.HasQueries}}
 extend type Query {
     {{- if $object.SQLDirective.Query.Get}}
-  get{{$object.Name}}({{range $entryKey, $entity := $object.PrimaryKeys}}{{$entity.Name}}: {{$entity.GqlType "Patch"}}{{end}}!): {{$object.Name}} {{ range $directiveKey, $directive := $object.SQLDirective.Query.DirectiveExt}} {{$directive}}{{end}}
+  get{{$object.Name}}({{range $entryKey, $entity := $object.PrimaryKeys}}{{$entity.Name}}: {{$entity.GqlType "Patch"}}{{end}}!): {{$object.Name}} {{ $object.SQLDirectiveValues "query" "Get" | join " "}}
     {{- end}}
     {{- if $object.SQLDirective.Query.Query}}
-  query{{$object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int ): {{$object.Name}}QueryResult {{ range $directiveKey, $directive := $object.SQLDirective.Query.DirectiveExt}} {{$directive}}{{end}}
+  query{{$object.Name}}(filter: {{$object.Name}}FiltersInput, order: {{$object.Name}}Order, first: Int, offset: Int ): {{$object.Name}}QueryResult {{ $object.SQLDirectiveValues "query" "Query" | join " "}}
     {{- end}}
 }
 {{- end}}
 {{- if $object.SQLDirective.HasMutation}}
 extend type Mutation {
 {{- range $m2mKey, $m2mEntity := $object.Many2ManyRefEntities }}
-  add{{$m2mEntity.GqlTypeName}}2{{$object.Name}}s(input:{{$m2mEntity.GqlTypeName}}Ref2{{$object.Name}}sInput!): Update{{$object.Name}}Payload
+  add{{$m2mEntity.GqlTypeName}}2{{$object.Name}}s(input:{{$m2mEntity.GqlTypeName}}Ref2{{$object.Name}}sInput!): Update{{$object.Name}}Payload {{ $object.SQLDirectiveValues "mutation" "Add" | join " "}}
 {{- end}}
   {{- if $object.SQLDirective.Mutation.Add}}
-  add{{$object.Name}}(input: [{{$object.Name}}Input!]!): Add{{$object.Name}}Payload
+  add{{$object.Name}}(input: [{{$object.Name}}Input!]!): Add{{$object.Name}}Payload {{ $object.SQLDirectiveValues "mutation" "Add" | join " "}}
   {{- end}}
   {{- if $object.SQLDirective.Mutation.Update}}
-  update{{$object.Name}}(input: Update{{$object.Name}}Input!): Update{{$object.Name}}Payload
+  update{{$object.Name}}(input: Update{{$object.Name}}Input!): Update{{$object.Name}}Payload {{ $object.SQLDirectiveValues "mutation" "Update" | join " "}}
   {{- end}}
   {{- if $object.SQLDirective.Mutation.Delete}}
-  delete{{$object.Name}}(filter: {{$object.Name}}FiltersInput!): Delete{{$object.Name}}Payload
+  delete{{$object.Name}}(filter: {{$object.Name}}FiltersInput!): Delete{{$object.Name}}Payload {{ $object.SQLDirectiveValues "mutation" "Delete" | join " "}}
   {{- end}}
 }
 {{- end}}

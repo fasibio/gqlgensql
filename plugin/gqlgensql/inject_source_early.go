@@ -13,17 +13,22 @@ func (ggs *GqlGenSqlPlugin) InjectSourceEarly() *ast.Source {
 
 	input := fmt.Sprintf(`
 
+	input SqlCreateExtension {
+		value: Boolean!
+		directiveExt: [String!]
+	}
+
 	input SqlMutationParams {
-		add: Boolean
-		update: Boolean
-		delete: Boolean
-		directiveEtx: [String!]
+		add: SqlCreateExtension
+		update: SqlCreateExtension
+		delete: SqlCreateExtension
+		directiveExt: [String!]
 	}
 
 	input SqlQueryParams {
-		get: Boolean
-		query: Boolean
-		directiveEtx: [String!]
+		get: SqlCreateExtension
+		query: SqlCreateExtension
+		directiveExt: [String!]
 	}
 	directive @%s(%s:SqlQueryParams, %s: SqlMutationParams ) on OBJECT
 	directive @%s on FIELD_DEFINITION

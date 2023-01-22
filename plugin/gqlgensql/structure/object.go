@@ -26,14 +26,8 @@ func (o Object) Name() string {
 func (o Object) Many2ManyRefEntities() map[string]Entity {
 	res := make(map[string]Entity)
 	for _, v := range o.Entities {
-		if v.HasGormDirective() && strings.Contains(v.GormDirectiveValue(), "many2many:") {
-			gs := strings.Split(v.GormDirectiveValue(), ";")
-			key := ""
-			for _, gd := range gs {
-				if strings.Contains(gd, "many2many:") {
-					key = strings.Replace(gd, "many2many:", "", 1)
-				}
-			}
+		if v.HasMany2ManyDirective() {
+			key := v.Many2ManyDirectiveTable()
 			res[key] = v
 		}
 	}
@@ -75,6 +69,27 @@ out:
 		}
 	}
 	return foreignName
+}
+
+type QueryMutation = string
+
+const (
+	Query    QueryMutation = "query"
+	Mutation QueryMutation = "mutation"
+)
+
+func (o Object) SQLDirectiveValues(queryOrMutation QueryMutation, name string) []string {
+	switch queryOrMutation {
+	case Query:
+		{
+			return o.SQLDirective().Query.GetDirectiveExt(name)
+		}
+	case Mutation:
+		{
+			return o.SQLDirective().Mutation.GetDirectiveExt(name)
+		}
+	}
+	return []string{}
 }
 
 func (o Object) SQLDirective() *SQLDirective {
