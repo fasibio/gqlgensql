@@ -34,6 +34,8 @@ type User @SQL(query: {
   todoList: [Todo!]!@SQL_GORM(value:"many2many:user_todos")
 }
 
+type Cat
+
 type Company @SQL{
   id: Int! @SQL_PRIMARY
   Name: String!

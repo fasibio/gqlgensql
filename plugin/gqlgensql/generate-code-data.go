@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/types"
 	"log"
+	"path"
 	"strings"
 
 	"github.com/99designs/gqlgen/codegen"
@@ -16,6 +17,16 @@ import (
 type GenerateData struct {
 	Data    *codegen.Data
 	Handler structure.SqlBuilderHelper
+}
+
+func (db *GenerateData) HookList(suffix, prefix string) []string {
+	res := make([]string, 0)
+	for _, v := range db.Handler.List {
+		if v.HasSqlDirective() {
+			res = append(res, fmt.Sprintf("%s%s%s", suffix, v.Name(), prefix))
+		}
+	}
+	return res
 }
 
 func (db *GenerateData) ModelsMigrations() string {
@@ -241,6 +252,7 @@ func (db *GenerateData) Imports() []string {
 		addedImports = append(addedImports, key)
 	}
 	addedImports = append(addedImports, "github.com/fasibio/gqlgensql/plugin/gqlgensql/runtimehelper")
+	addedImports = append(addedImports, path.Join(db.Data.Config.Resolver.ImportPath(), "db"))
 	return addedImports
 }
 

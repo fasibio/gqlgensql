@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fasibio/gqlgensql/graph/db"
 	"github.com/fasibio/gqlgensql/graph/generated"
 	"github.com/fasibio/gqlgensql/graph/model"
 	"github.com/fasibio/gqlgensql/plugin/gqlgensql/runtimehelper"
@@ -13,21 +14,66 @@ import (
 )
 
 // GetCompany is the resolver for the getCompany field.
-
 func (r *queryResolver) GetCompany(ctx context.Context, id int) (*model.Company, error) {
+	v, okHook := r.Sql.Hooks["GetCompany"].(db.GqlGenSqlHookGet[model.Company])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "Company"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res model.Company
-	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "Company")).First(&res, id)
-	return &res, d.Error
+	db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
 }
 
 // QueryCompany is the resolver for the queryCompany field.
 func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error) {
+	v, okHook := r.Sql.Hooks["QueryCompany"].(db.GqlGenSqlHookQuery[model.Company, model.CompanyFiltersInput, model.CompanyOrder])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, order, first, offset, err = v.Received(ctx, r.Sql, filter, order, first, offset)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res []*model.Company
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
 		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if order != nil {
@@ -46,12 +92,23 @@ func (r *queryResolver) QueryCompany(ctx context.Context, filter *model.CompanyF
 	if offset != nil {
 		db = db.Offset(*offset)
 	}
-	d := db.Find(&res)
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx, res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx, res, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &model.CompanyQueryResult{
 		Data:       res,
 		Count:      len(res),
 		TotalCount: int(total),
-	}, d.Error
+	}, db.Error
 }
 func (r *Resolver) AddCompanyPayload() generated.AddCompanyPayloadResolver {
 	return &companyPayloadResolver[*model.AddCompanyPayload]{r}
@@ -77,54 +134,176 @@ func (r *companyPayloadResolver[T]) Company(ctx context.Context, obj T, filter *
 
 // AddCompany is the resolver for the addCompany field.
 func (r *mutationResolver) AddCompany(ctx context.Context, input []*model.CompanyInput) (*model.AddCompanyPayload, error) {
+	v, okHook := r.Sql.Hooks["AddCompany"].(db.GqlGenSqlHookAdd[model.Company, model.CompanyInput, model.AddCompanyPayload])
+	res := &model.AddCompanyPayload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	obj := make([]model.Company, len(input))
 	for i, v := range input {
 		obj[i] = v.MergeToType()
 	}
-	res := r.Sql.Db.Omit(clause.Associations).Create(&obj)
-	return &model.AddCompanyPayload{}, res.Error
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx, db, obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // UpdateCompany is the resolver for the updateCompany field.
 func (r *mutationResolver) UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error) {
+	v, okHook := r.Sql.Hooks["UpdateCompany"].(db.GqlGenSqlHookUpdate[model.Company, model.UpdateCompanyInput, model.UpdateCompanyPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, &input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
 	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Company{}
-	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
-	return &model.UpdateCompanyPayload{
-		Count: int(res.RowsAffected),
-	}, res.Error
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx, db, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.UpdateCompanyPayload{
+		Count: int(db.RowsAffected),
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // DeleteCompany is the resolver for the deleteCompany field.
 func (r *mutationResolver) DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error) {
+	v, okHook := r.Sql.Hooks["DeleteCompany"].(db.GqlGenSqlHookDelete[model.Company, model.CompanyFiltersInput, model.DeleteCompanyPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Company")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 	obj := model.Company{}
-	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
-	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
-	return &model.DeleteCompanyPayload{
-		Count: int(res.RowsAffected),
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.DeleteCompanyPayload{
+		Count: int(db.RowsAffected),
 		Msg:   &msg,
-	}, res.Error
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // GetTodo is the resolver for the getTodo field.
-
 func (r *queryResolver) GetTodo(ctx context.Context, id int) (*model.Todo, error) {
+	v, okHook := r.Sql.Hooks["GetTodo"].(db.GqlGenSqlHookGet[model.Todo])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "Todo"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res model.Todo
-	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "Todo")).First(&res, id)
-	return &res, d.Error
+	db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
 }
 
 // QueryTodo is the resolver for the queryTodo field.
 func (r *queryResolver) QueryTodo(ctx context.Context, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error) {
+	v, okHook := r.Sql.Hooks["QueryTodo"].(db.GqlGenSqlHookQuery[model.Todo, model.TodoFiltersInput, model.TodoOrder])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, order, first, offset, err = v.Received(ctx, r.Sql, filter, order, first, offset)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res []*model.Todo
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
 		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if order != nil {
@@ -143,12 +322,23 @@ func (r *queryResolver) QueryTodo(ctx context.Context, filter *model.TodoFilters
 	if offset != nil {
 		db = db.Offset(*offset)
 	}
-	d := db.Find(&res)
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx, res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx, res, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &model.TodoQueryResult{
 		Data:       res,
 		Count:      len(res),
 		TotalCount: int(total),
-	}, d.Error
+	}, db.Error
 }
 func (r *Resolver) AddTodoPayload() generated.AddTodoPayloadResolver {
 	return &todoPayloadResolver[*model.AddTodoPayload]{r}
@@ -198,54 +388,176 @@ func (r *mutationResolver) AddUser2Todos(ctx context.Context, input model.UserRe
 
 // AddTodo is the resolver for the addTodo field.
 func (r *mutationResolver) AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error) {
+	v, okHook := r.Sql.Hooks["AddTodo"].(db.GqlGenSqlHookAdd[model.Todo, model.TodoInput, model.AddTodoPayload])
+	res := &model.AddTodoPayload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	obj := make([]model.Todo, len(input))
 	for i, v := range input {
 		obj[i] = v.MergeToType()
 	}
-	res := r.Sql.Db.Omit(clause.Associations).Create(&obj)
-	return &model.AddTodoPayload{}, res.Error
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx, db, obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // UpdateTodo is the resolver for the updateTodo field.
 func (r *mutationResolver) UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error) {
+	v, okHook := r.Sql.Hooks["UpdateTodo"].(db.GqlGenSqlHookUpdate[model.Todo, model.UpdateTodoInput, model.UpdateTodoPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, &input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
 	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.Todo{}
-	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
-	return &model.UpdateTodoPayload{
-		Count: int(res.RowsAffected),
-	}, res.Error
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx, db, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.UpdateTodoPayload{
+		Count: int(db.RowsAffected),
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // DeleteTodo is the resolver for the deleteTodo field.
 func (r *mutationResolver) DeleteTodo(ctx context.Context, filter model.TodoFiltersInput) (*model.DeleteTodoPayload, error) {
+	v, okHook := r.Sql.Hooks["DeleteTodo"].(db.GqlGenSqlHookDelete[model.Todo, model.TodoFiltersInput, model.DeleteTodoPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Todo")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 	obj := model.Todo{}
-	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
-	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
-	return &model.DeleteTodoPayload{
-		Count: int(res.RowsAffected),
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.DeleteTodoPayload{
+		Count: int(db.RowsAffected),
 		Msg:   &msg,
-	}, res.Error
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // GetUser is the resolver for the getUser field.
-
 func (r *queryResolver) GetUser(ctx context.Context, id int) (*model.User, error) {
+	v, okHook := r.Sql.Hooks["GetUser"].(db.GqlGenSqlHookGet[model.User])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "User"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res model.User
-	d := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "User")).First(&res, id)
-	return &res, d.Error
+	db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
 }
 
 // QueryUser is the resolver for the queryUser field.
 func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error) {
+	v, okHook := r.Sql.Hooks["QueryUser"].(db.GqlGenSqlHookQuery[model.User, model.UserFiltersInput, model.UserOrder])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, order, first, offset, err = v.Received(ctx, r.Sql, filter, order, first, offset)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res []*model.User
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil {
 		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if order != nil {
@@ -264,12 +576,23 @@ func (r *queryResolver) QueryUser(ctx context.Context, filter *model.UserFilters
 	if offset != nil {
 		db = db.Offset(*offset)
 	}
-	d := db.Find(&res)
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx, res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx, res, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &model.UserQueryResult{
 		Data:       res,
 		Count:      len(res),
 		TotalCount: int(total),
-	}, d.Error
+	}, db.Error
 }
 func (r *Resolver) AddUserPayload() generated.AddUserPayloadResolver {
 	return &userPayloadResolver[*model.AddUserPayload]{r}
@@ -319,34 +642,111 @@ func (r *mutationResolver) AddTodo2Users(ctx context.Context, input model.TodoRe
 
 // AddUser is the resolver for the addUser field.
 func (r *mutationResolver) AddUser(ctx context.Context, input []*model.UserInput) (*model.AddUserPayload, error) {
+	v, okHook := r.Sql.Hooks["AddUser"].(db.GqlGenSqlHookAdd[model.User, model.UserInput, model.AddUserPayload])
+	res := &model.AddUserPayload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	obj := make([]model.User, len(input))
 	for i, v := range input {
 		obj[i] = v.MergeToType()
 	}
-	res := r.Sql.Db.Omit(clause.Associations).Create(&obj)
-	return &model.AddUserPayload{}, res.Error
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx, db, obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UpdateUserInput) (*model.UpdateUserPayload, error) {
+	v, okHook := r.Sql.Hooks["UpdateUser"].(db.GqlGenSqlHookUpdate[model.User, model.UpdateUserInput, model.UpdateUserPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, &input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
 	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.User{}
-	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
-	return &model.UpdateUserPayload{
-		Count: int(res.RowsAffected),
-	}, res.Error
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx, db, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.UpdateUserPayload{
+		Count: int(db.RowsAffected),
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
 
 // DeleteUser is the resolver for the deleteUser field.
 func (r *mutationResolver) DeleteUser(ctx context.Context, filter model.UserFiltersInput) (*model.DeleteUserPayload, error) {
+	v, okHook := r.Sql.Hooks["DeleteUser"].(db.GqlGenSqlHookDelete[model.User, model.UserFiltersInput, model.DeleteUserPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("User")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 	obj := model.User{}
-	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
-	msg := fmt.Sprintf("%d rows deleted", res.RowsAffected)
-	return &model.DeleteUserPayload{
-		Count: int(res.RowsAffected),
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.DeleteUserPayload{
+		Count: int(db.RowsAffected),
 		Msg:   &msg,
-	}, res.Error
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }

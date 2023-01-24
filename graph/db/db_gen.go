@@ -3,18 +3,107 @@
 package db
 
 import (
+	"context"
+
 	"github.com/fasibio/gqlgensql/graph/model"
 	"gorm.io/gorm"
 )
 
+type GqlGenSqlHookM interface {
+	model.User | model.Company | model.Todo
+}
+type GqlGenSqlHookF interface {
+	model.CompanyFiltersInput | model.TodoFiltersInput | model.UserFiltersInput
+}
+
+type GqlGenSqlHookQueryO interface {
+	model.CompanyOrder | model.TodoOrder | model.UserOrder
+}
+
+type GqlGenSqlHookI interface {
+	model.CompanyInput | model.TodoInput | model.UserInput
+}
+
+type GqlGenSqlHookU interface {
+	model.UpdateUserInput | model.UpdateCompanyInput | model.UpdateTodoInput
+}
+
+type GqlGenSqlHookUP interface {
+	model.UpdateCompanyPayload | model.UpdateTodoPayload | model.UpdateUserPayload
+}
+
+type GqlGenSqlHookDP interface {
+	model.DeleteTodoPayload | model.DeleteUserPayload | model.DeleteCompanyPayload
+}
+
+type GqlGenSqlHookAP interface {
+	model.AddCompanyPayload | model.AddTodoPayload | model.AddUserPayload
+}
+
 type GqlGenSqlDB struct {
-	Db *gorm.DB
+	Db    *gorm.DB
+	Hooks map[string]any
 }
 
 func NewGqlGenSqlDB(db *gorm.DB) GqlGenSqlDB {
-	return GqlGenSqlDB{db}
+	return GqlGenSqlDB{
+		Db:    db,
+		Hooks: make(map[string]any),
+	}
 }
 
 func (db *GqlGenSqlDB) Init() {
 	db.Db.AutoMigrate(&model.Company{}, &model.Todo{}, &model.User{})
+}
+
+func AddGetHook[T GqlGenSqlHookM](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookGet[T]) {
+	db.Hooks[name] = implementation
+}
+
+func AddQueryHook[M GqlGenSqlHookM, F GqlGenSqlHookF, O GqlGenSqlHookQueryO](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookQuery[M, F, O]) {
+	db.Hooks[name] = implementation
+}
+
+func AddAddHook[M GqlGenSqlHookM, I GqlGenSqlHookI, AP GqlGenSqlHookAP](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookAdd[M, I, AP]) {
+	db.Hooks[name] = implementation
+}
+
+func AddUpdateHook[M GqlGenSqlHookM, U GqlGenSqlHookU, UP GqlGenSqlHookUP](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookUpdate[M, U, UP]) {
+	db.Hooks[name] = implementation
+}
+
+func AddDeleteHook[M GqlGenSqlHookM, F GqlGenSqlHookF, DP GqlGenSqlHookDP](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookDelete[M, F, DP]) {
+	db.Hooks[name] = implementation
+}
+
+type GqlGenSqlHookGet[obj GqlGenSqlHookM] interface {
+	Received(ctx context.Context, dbHelper *GqlGenSqlDB, id int) (*gorm.DB, error)
+	BeforeCallDb(ctx context.Context, db *gorm.DB) (*gorm.DB, error)
+	AfterCallDb(ctx context.Context, data *obj) (*obj, error)
+	BeforeReturn(ctx context.Context, data *obj, db *gorm.DB) (*obj, error)
+}
+
+type GqlGenSqlHookQuery[obj GqlGenSqlHookM, filter GqlGenSqlHookF, order GqlGenSqlHookQueryO] interface {
+	Received(ctx context.Context, dbHelper *GqlGenSqlDB, filter *filter, order *order, first, offset *int) (*gorm.DB, *filter, *order, *int, *int, error)
+	BeforeCallDb(ctx context.Context, db *gorm.DB) (*gorm.DB, error)
+	AfterCallDb(ctx context.Context, data []*obj) ([]*obj, error)
+	BeforeReturn(ctx context.Context, data []*obj, db *gorm.DB) ([]*obj, error)
+}
+
+type GqlGenSqlHookAdd[obj GqlGenSqlHookM, input GqlGenSqlHookI, res GqlGenSqlHookAP] interface {
+	Received(ctx context.Context, dbHelper *GqlGenSqlDB, input []*input) (*gorm.DB, []*input, error)
+	BeforeCallDb(ctx context.Context, db *gorm.DB, data []obj) (*gorm.DB, []obj, error)
+	BeforeReturn(ctx context.Context, db *gorm.DB, res *res) (*res, error)
+}
+
+type GqlGenSqlHookUpdate[obj GqlGenSqlHookM, input GqlGenSqlHookU, res GqlGenSqlHookUP] interface {
+	Received(ctx context.Context, dbHelper *GqlGenSqlDB, input *input) (*gorm.DB, input, error)
+	BeforeCallDb(ctx context.Context, db *gorm.DB, data *obj) (*gorm.DB, *obj, error)
+	BeforeReturn(ctx context.Context, db *gorm.DB, res *res) (*res, error)
+}
+
+type GqlGenSqlHookDelete[obj GqlGenSqlHookM, input GqlGenSqlHookF, res GqlGenSqlHookDP] interface {
+	Received(ctx context.Context, dbHelper *GqlGenSqlDB, input *input) (*gorm.DB, input, error)
+	BeforeCallDb(ctx context.Context, db *gorm.DB) (*gorm.DB, error)
+	BeforeReturn(ctx context.Context, db *gorm.DB, res *res) (*res, error)
 }

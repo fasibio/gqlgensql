@@ -12,22 +12,68 @@
   {{- if $object.SQLDirective.HasQueries}}
     {{- if $object.SQLDirective.Query.Get}}
 // Get{{$object.Name}} is the resolver for the get{{$object.Name}} field.
-{{$primaryField := $object.PrimaryKeyField }}
+{{- $primaryField := $object.PrimaryKeyField }}
 func (r *queryResolver) Get{{$object.Name}}(ctx context.Context, {{$primaryField.Name}} {{$root.GetGoFieldType $objectName $primaryField false}}) (*model.{{$object.Name}}, error) {
+	v, okHook := r.Sql.Hooks["Get{{$object.Name}}"].(db.GqlGenSqlHookGet[model.{{$object.Name}}])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx,db,runtimehelper.GetPreloadsMap(ctx,"{{$object.Name}}"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res model.{{$object.Name}}
-  d := runtimehelper.GetPreloadSelection(ctx,r.Sql.Db,runtimehelper.GetPreloadsMap(ctx,"{{$object.Name}}")).First(&res, id)
-	return &res, d.Error
+  db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
 }
     {{- end}}
     {{- if $object.SQLDirective.Query.Query}}
 // Query{{$object.Name}} is the resolver for the query{{$object.Name}} field.
 func (r *queryResolver) Query{{$object.Name}}(ctx context.Context, filter *model.{{$object.Name}}FiltersInput, order *model.{{$object.Name}}Order, first *int, offset *int) (*model.{{$object.Name}}QueryResult, error) {
+	v, okHook := r.Sql.Hooks["Query{{$object.Name}}"].(db.GqlGenSqlHookQuery[model.{{$object.Name}}, model.{{$object.Name}}FiltersInput,model.{{$object.Name}}Order])
+  db := r.Sql.Db
+	if okHook {
+		var err error
+		db,filter,order,first, offset, err = v.Received(ctx,r.Sql,filter,order,first,offset)
+		if err != nil {
+			return nil, err
+		}
+	}
 	var res []*model.{{$object.Name}}
   tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
-	db := runtimehelper.GetPreloadSelection(ctx, r.Sql.Db,runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	db = runtimehelper.GetPreloadSelection(ctx, db,runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
 	if filter != nil{
 		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx,db)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if (order != nil){
@@ -46,12 +92,23 @@ func (r *queryResolver) Query{{$object.Name}}(ctx context.Context, filter *model
 	if offset != nil {
 		db = db.Offset(*offset)
 	}
-	d := db.Find(&res)
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx,res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx,res,db)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &model.{{$object.Name}}QueryResult{
 		Data: res,
     Count: len(res),
 		TotalCount: int(total),
-	},d.Error
+	},db.Error
 }
     {{- end}}
   {{- end}}
@@ -103,38 +160,115 @@ func (r *mutationResolver) Add{{$m2mEntity.GqlTypeName}}2{{$object.Name}}s(ctx c
     {{- if $object.SQLDirective.Mutation.Add}}
 // Add{{$object.Name}} is the resolver for the add{{$object.Name}} field.
 func (r *mutationResolver) Add{{$object.Name}}(ctx context.Context, input []*model.{{$object.Name}}Input) (*model.Add{{$object.Name}}Payload, error) {
+	v, okHook := r.Sql.Hooks["Add{{$object.Name}}"].(db.GqlGenSqlHookAdd[model.{{$object.Name}}, model.{{$object.Name}}Input, model.Add{{$object.Name}}Payload])
+	res := &model.Add{{$object.Name}}Payload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db,input, err = v.Received(ctx,r.Sql,input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	obj:= make([]model.{{$object.Name}}, len(input))
   for i, v := range input {
     obj[i] = v.MergeToType()
   }
-  res := r.Sql.Db.Omit(clause.Associations).Create(&obj)
-  return &model.Add{{$object.Name}}Payload{}, res.Error
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx,db,obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+  db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx,db,res)
+		if err != nil {
+			return nil, err
+		}
+	}
+  return res, db.Error
 }
     {{- end}}
     {{- if $object.SQLDirective.Mutation.Update}}
 // Update{{$object.Name}} is the resolver for the update{{$object.Name}} field.
 func (r *mutationResolver) Update{{$object.Name}}(ctx context.Context, input model.Update{{$object.Name}}Input) (*model.Update{{$object.Name}}Payload, error) {
+  v, okHook := r.Sql.Hooks["Update{{$object.Name}}"].(db.GqlGenSqlHookUpdate[model.{{$object.Name}}, model.Update{{$object.Name}}Input, model.Update{{$object.Name}}Payload])
+	db := r.Sql.Db
+	if okHook{
+		var err error
+		db, input, err =v.Received(ctx,r.Sql,&input)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
 	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
 	obj := model.{{$object.Name}}{}
-	res := r.Sql.Db.Model(&obj).Where(sql, arguments...).Updates(input.Set.MergeToType())
-	return &model.Update{{$object.Name}}Payload{
-		Count: int(res.RowsAffected),
-	}, res.Error
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx,db,update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.Update{{$object.Name}}Payload{
+		Count: int(db.RowsAffected),
+	}
+		if okHook {
+		var err error 
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
     {{- end}}
     {{- if $object.SQLDirective.Mutation.Delete}}
 // Delete{{$object.Name}} is the resolver for the delete{{$object.Name}} field.
 func (r *mutationResolver) Delete{{$object.Name}}(ctx context.Context, filter model.{{$object.Name}}FiltersInput) (*model.Delete{{$object.Name}}Payload, error) {
+	v, okHook := r.Sql.Hooks["Delete{{$object.Name}}"].(db.GqlGenSqlHookDelete[model.{{$object.Name}}, model.{{$object.Name}}FiltersInput, model.Delete{{$object.Name}}Payload])
+	db := r.Sql.Db
+	if okHook{
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
 	tableName := r.Sql.Db.Config.NamingStrategy.TableName("{{$object.Name}}")
-	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
 	obj := model.{{$object.Name}}{}
-	res := r.Sql.Db.Where(sql, arguments...).Delete(&obj)
-	msg := fmt.Sprintf("%d rows deleted",res.RowsAffected)
-	return &model.Delete{{$object.Name}}Payload{
-		Count: int(res.RowsAffected),
-		Msg: &msg,
-	}, res.Error
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx,db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+		msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.Delete{{$object.Name}}Payload{
+		Count: int(db.RowsAffected),
+		Msg:   &msg,
+	}
+	if okHook{
+		var err error
+		res, err = v.BeforeReturn(ctx,db,res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
 }
     {{- end}}
   {{- end}}

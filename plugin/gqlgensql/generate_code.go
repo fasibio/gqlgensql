@@ -52,6 +52,7 @@ func (ggs GqlGenSqlPlugin) generateDbCode(data *codegen.Data) error {
 		GeneratedHeader: true,
 		Packages:        data.Config.Packages,
 		Template:        generateDbCodeTemplate,
+		Funcs:           sprig.FuncMap(),
 	})
 }
 
