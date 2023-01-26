@@ -183,6 +183,23 @@ func (m *GenerateData) generateFields(schemaType *ast.Definition) ([]*modelgen.F
 	return fields, nil
 }
 
+func (db *GenerateData) GetGoFieldTypeName(typeName string, v structure.Entity) string {
+	objects := make(codegen.Objects, len(db.Data.Objects)+len(db.Data.Inputs))
+	copy(objects, db.Data.Objects)
+	copy(objects[len(db.Data.Objects):], db.Data.Inputs)
+	for _, v1 := range objects {
+		if v1.Name == typeName {
+			for _, fv := range v1.Fields {
+				if fv.Name == v.Name() {
+					return fv.Type.Name()
+				}
+			}
+
+		}
+	}
+	return templates.UcFirst(v.Name())
+}
+
 func (db *GenerateData) GetGoFieldName(typeName string, v structure.Entity) string {
 	objects := make(codegen.Objects, len(db.Data.Objects)+len(db.Data.Inputs))
 	copy(objects, db.Data.Objects)

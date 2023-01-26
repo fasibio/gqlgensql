@@ -8,8 +8,16 @@ import (
 	"strconv"
 )
 
+type AddCatPayload struct {
+	Cat *CatQueryResult `json:"cat"`
+}
+
 type AddCompanyPayload struct {
 	Company *CompanyQueryResult `json:"company"`
+}
+
+type AddCreditCardPayload struct {
+	CreditCard *CreditCardQueryResult `json:"creditCard"`
 }
 
 type AddTodoPayload struct {
@@ -27,6 +35,48 @@ type BooleanFilterInput struct {
 	Is      *bool               `json:"is"`
 	Null    *bool               `json:"null"`
 	NotNull *bool               `json:"notNull"`
+}
+
+type Cat struct {
+	ID     int    `json:"id" gorm:"primaryKey"`
+	Name   string `json:"name"`
+	Age    *int   `json:"age"`
+	UserID int    `json:"UserID"`
+}
+
+type CatFiltersInput struct {
+	ID     *IntFilterInput    `json:"id"`
+	Name   *StringFilterInput `json:"name"`
+	Age    *IntFilterInput    `json:"age"`
+	UserID *IntFilterInput    `json:"UserID"`
+	And    []*CatFiltersInput `json:"and"`
+	Or     []*CatFiltersInput `json:"or"`
+	Not    *CatFiltersInput   `json:"not"`
+}
+
+type CatInput struct {
+	ID     int    `json:"id"`
+	Name   string `json:"name"`
+	Age    *int   `json:"age"`
+	UserID int    `json:"UserID"`
+}
+
+type CatOrder struct {
+	Asc  *CatOrderable `json:"asc"`
+	Desc *CatOrderable `json:"desc"`
+}
+
+type CatPatch struct {
+	ID     *int    `json:"id"`
+	Name   *string `json:"name"`
+	Age    *int    `json:"age"`
+	UserID *int    `json:"UserID"`
+}
+
+type CatQueryResult struct {
+	Data       []*Cat `json:"data"`
+	Count      int    `json:"count"`
+	TotalCount int    `json:"totalCount"`
 }
 
 type CompanyFiltersInput struct {
@@ -64,16 +114,60 @@ type CompanyQueryResult struct {
 	TotalCount int        `json:"totalCount"`
 }
 
-type CompanyWhere struct {
-	ID              *int    `json:"id"`
-	Name            *string `json:"Name"`
-	MotherCompanyID *int    `json:"motherCompanyID"`
+type CreditCard struct {
+	ID     int    `json:"id" gorm:"primaryKey"`
+	Number string `json:"number"`
+	UserID int    `json:"userID"`
+}
+
+type CreditCardFiltersInput struct {
+	ID     *IntFilterInput           `json:"id"`
+	Number *StringFilterInput        `json:"number"`
+	UserID *IntFilterInput           `json:"userID"`
+	And    []*CreditCardFiltersInput `json:"and"`
+	Or     []*CreditCardFiltersInput `json:"or"`
+	Not    *CreditCardFiltersInput   `json:"not"`
+}
+
+type CreditCardInput struct {
+	ID     int    `json:"id"`
+	Number string `json:"number"`
+	UserID int    `json:"userID"`
+}
+
+type CreditCardOrder struct {
+	Asc  *CreditCardOrderable `json:"asc"`
+	Desc *CreditCardOrderable `json:"desc"`
+}
+
+type CreditCardPatch struct {
+	ID     *int    `json:"id"`
+	Number *string `json:"number"`
+	UserID *int    `json:"userID"`
+}
+
+type CreditCardQueryResult struct {
+	Data       []*CreditCard `json:"data"`
+	Count      int           `json:"count"`
+	TotalCount int           `json:"totalCount"`
+}
+
+type DeleteCatPayload struct {
+	Cat   *CatQueryResult `json:"cat"`
+	Count int             `json:"count"`
+	Msg   *string         `json:"msg"`
 }
 
 type DeleteCompanyPayload struct {
 	Company *CompanyQueryResult `json:"company"`
 	Count   int                 `json:"count"`
 	Msg     *string             `json:"msg"`
+}
+
+type DeleteCreditCardPayload struct {
+	CreditCard *CreditCardQueryResult `json:"creditCard"`
+	Count      int                    `json:"count"`
+	Msg        *string                `json:"msg"`
 }
 
 type DeleteTodoPayload struct {
@@ -210,11 +304,14 @@ type TodoRef2UsersInput struct {
 	Set    []int             `json:"set"`
 }
 
-type TodoWhere struct {
-	ID          *int    `json:"id"`
-	Title       *string `json:"title"`
-	Description *string `json:"description"`
-	Done        *bool   `json:"done"`
+type UpdateCatInput struct {
+	Filter *CatFiltersInput `json:"filter"`
+	Set    *CatPatch        `json:"set"`
+}
+
+type UpdateCatPayload struct {
+	Cat   *CatQueryResult `json:"cat"`
+	Count int             `json:"count"`
 }
 
 type UpdateCompanyInput struct {
@@ -225,6 +322,16 @@ type UpdateCompanyInput struct {
 type UpdateCompanyPayload struct {
 	Company *CompanyQueryResult `json:"company"`
 	Count   int                 `json:"count"`
+}
+
+type UpdateCreditCardInput struct {
+	Filter *CreditCardFiltersInput `json:"filter"`
+	Set    *CreditCardPatch        `json:"set"`
+}
+
+type UpdateCreditCardPayload struct {
+	CreditCard *CreditCardQueryResult `json:"creditCard"`
+	Count      int                    `json:"count"`
 }
 
 type UpdateTodoInput struct {
@@ -248,30 +355,36 @@ type UpdateUserPayload struct {
 }
 
 type User struct {
-	ID        int      `json:"id" gorm:"primaryKey"`
-	Name      string   `json:"name"`
-	CompanyID *int     `json:"companyID"`
-	Company   *Company `json:"company"`
-	TodoList  []*Todo  `json:"todoList" gorm:"many2many:user_todos"`
+	ID          int           `json:"id" gorm:"primaryKey"`
+	Name        string        `json:"name"`
+	CompanyID   *int          `json:"companyID"`
+	Company     *Company      `json:"company"`
+	TodoList    []*Todo       `json:"todoList" gorm:"many2many:user_todos"`
+	Cat         *Cat          `json:"cat"`
+	CreditCards []*CreditCard `json:"creditCards"`
 }
 
 type UserFiltersInput struct {
-	ID        *IntFilterInput      `json:"id"`
-	Name      *StringFilterInput   `json:"name"`
-	CompanyID *IntFilterInput      `json:"companyID"`
-	Company   *CompanyFiltersInput `json:"company"`
-	TodoList  *TodoFiltersInput    `json:"todoList"`
-	And       []*UserFiltersInput  `json:"and"`
-	Or        []*UserFiltersInput  `json:"or"`
-	Not       *UserFiltersInput    `json:"not"`
+	ID          *IntFilterInput         `json:"id"`
+	Name        *StringFilterInput      `json:"name"`
+	CompanyID   *IntFilterInput         `json:"companyID"`
+	Company     *CompanyFiltersInput    `json:"company"`
+	TodoList    *TodoFiltersInput       `json:"todoList"`
+	Cat         *CatFiltersInput        `json:"cat"`
+	CreditCards *CreditCardFiltersInput `json:"creditCards"`
+	And         []*UserFiltersInput     `json:"and"`
+	Or          []*UserFiltersInput     `json:"or"`
+	Not         *UserFiltersInput       `json:"not"`
 }
 
 type UserInput struct {
-	ID        int           `json:"id"`
-	Name      string        `json:"name"`
-	CompanyID *int          `json:"companyID"`
-	Company   *CompanyInput `json:"company"`
-	TodoList  []*TodoInput  `json:"todoList"`
+	ID          int                `json:"id"`
+	Name        string             `json:"name"`
+	CompanyID   *int               `json:"companyID"`
+	Company     *CompanyInput      `json:"company"`
+	TodoList    []*TodoInput       `json:"todoList"`
+	Cat         *CatInput          `json:"cat"`
+	CreditCards []*CreditCardInput `json:"creditCards"`
 }
 
 type UserOrder struct {
@@ -280,11 +393,13 @@ type UserOrder struct {
 }
 
 type UserPatch struct {
-	ID        *int          `json:"id"`
-	Name      *string       `json:"name"`
-	CompanyID *int          `json:"companyID"`
-	Company   *CompanyPatch `json:"company"`
-	TodoList  []*TodoPatch  `json:"todoList"`
+	ID          *int               `json:"id"`
+	Name        *string            `json:"name"`
+	CompanyID   *int               `json:"companyID"`
+	Company     *CompanyPatch      `json:"company"`
+	TodoList    []*TodoPatch       `json:"todoList"`
+	Cat         *CatPatch          `json:"cat"`
+	CreditCards []*CreditCardPatch `json:"creditCards"`
 }
 
 type UserQueryResult struct {
@@ -298,10 +413,49 @@ type UserRef2TodosInput struct {
 	Set    []int             `json:"set"`
 }
 
-type UserWhere struct {
-	ID        *int    `json:"id"`
-	Name      *string `json:"name"`
-	CompanyID *int    `json:"companyID"`
+type CatOrderable string
+
+const (
+	CatOrderableID     CatOrderable = "id"
+	CatOrderableName   CatOrderable = "name"
+	CatOrderableAge    CatOrderable = "age"
+	CatOrderableUserID CatOrderable = "UserID"
+)
+
+var AllCatOrderable = []CatOrderable{
+	CatOrderableID,
+	CatOrderableName,
+	CatOrderableAge,
+	CatOrderableUserID,
+}
+
+func (e CatOrderable) IsValid() bool {
+	switch e {
+	case CatOrderableID, CatOrderableName, CatOrderableAge, CatOrderableUserID:
+		return true
+	}
+	return false
+}
+
+func (e CatOrderable) String() string {
+	return string(e)
+}
+
+func (e *CatOrderable) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CatOrderable(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CatOrderable", str)
+	}
+	return nil
+}
+
+func (e CatOrderable) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type CompanyOrderable string
@@ -344,6 +498,49 @@ func (e *CompanyOrderable) UnmarshalGQL(v interface{}) error {
 }
 
 func (e CompanyOrderable) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type CreditCardOrderable string
+
+const (
+	CreditCardOrderableID     CreditCardOrderable = "id"
+	CreditCardOrderableNumber CreditCardOrderable = "number"
+	CreditCardOrderableUserID CreditCardOrderable = "userID"
+)
+
+var AllCreditCardOrderable = []CreditCardOrderable{
+	CreditCardOrderableID,
+	CreditCardOrderableNumber,
+	CreditCardOrderableUserID,
+}
+
+func (e CreditCardOrderable) IsValid() bool {
+	switch e {
+	case CreditCardOrderableID, CreditCardOrderableNumber, CreditCardOrderableUserID:
+		return true
+	}
+	return false
+}
+
+func (e CreditCardOrderable) String() string {
+	return string(e)
+}
+
+func (e *CreditCardOrderable) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = CreditCardOrderable(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid CreditCardOrderable", str)
+	}
+	return nil
+}
+
+func (e CreditCardOrderable) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

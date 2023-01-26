@@ -2,6 +2,51 @@
 
 package model
 
+func (d *CatPatch) MergeToType() Cat {
+	var tmpID int
+	if d.ID != nil {
+		tmpID = *d.ID
+	}
+	var tmpName string
+	if d.Name != nil {
+		tmpName = *d.Name
+	}
+	var tmpAge *int
+	if d.Age != nil {
+		tmpAge = d.Age
+	}
+	var tmpUserID int
+	if d.UserID != nil {
+		tmpUserID = *d.UserID
+	}
+	return Cat{
+		ID:     tmpID,
+		Name:   tmpName,
+		Age:    tmpAge,
+		UserID: tmpUserID,
+	}
+}
+
+func (d *CatInput) MergeToType() Cat {
+
+	tmpID := d.ID
+
+	tmpName := d.Name
+
+	var tmpAge *int
+	if d.Age != nil {
+		tmpAge = d.Age
+	}
+
+	tmpUserID := d.UserID
+	return Cat{
+		ID:     tmpID,
+		Name:   tmpName,
+		Age:    tmpAge,
+		UserID: tmpUserID,
+	}
+}
+
 func (d *CompanyPatch) MergeToType() Company {
 	var tmpID int
 	if d.ID != nil {
@@ -46,6 +91,40 @@ func (d *CompanyInput) MergeToType() Company {
 		Name:            tmpName,
 		MotherCompanyID: tmpMotherCompanyID,
 		MotherCompany:   &tmpMotherCompany,
+	}
+}
+
+func (d *CreditCardPatch) MergeToType() CreditCard {
+	var tmpID int
+	if d.ID != nil {
+		tmpID = *d.ID
+	}
+	var tmpNumber string
+	if d.Number != nil {
+		tmpNumber = *d.Number
+	}
+	var tmpUserID int
+	if d.UserID != nil {
+		tmpUserID = *d.UserID
+	}
+	return CreditCard{
+		ID:     tmpID,
+		Number: tmpNumber,
+		UserID: tmpUserID,
+	}
+}
+
+func (d *CreditCardInput) MergeToType() CreditCard {
+
+	tmpID := d.ID
+
+	tmpNumber := d.Number
+
+	tmpUserID := d.UserID
+	return CreditCard{
+		ID:     tmpID,
+		Number: tmpNumber,
+		UserID: tmpUserID,
 	}
 }
 
@@ -134,12 +213,26 @@ func (d *UserPatch) MergeToType() User {
 			tmpTodoList = append(tmpTodoList, &tmp)
 		}
 	}
+	var tmpCat Cat
+	if d.Cat != nil {
+		tmpCat = d.Cat.MergeToType()
+	}
+	var tmpCreditCards []*CreditCard
+	if d.CreditCards != nil {
+		tmpCreditCards = make([]*CreditCard, len(d.CreditCards))
+		for _, v := range d.CreditCards {
+			tmp := v.MergeToType()
+			tmpCreditCards = append(tmpCreditCards, &tmp)
+		}
+	}
 	return User{
-		ID:        tmpID,
-		Name:      tmpName,
-		CompanyID: tmpCompanyID,
-		Company:   &tmpCompany,
-		TodoList:  tmpTodoList,
+		ID:          tmpID,
+		Name:        tmpName,
+		CompanyID:   tmpCompanyID,
+		Company:     &tmpCompany,
+		TodoList:    tmpTodoList,
+		Cat:         &tmpCat,
+		CreditCards: tmpCreditCards,
 	}
 }
 
@@ -165,11 +258,25 @@ func (d *UserInput) MergeToType() User {
 			tmpTodoList = append(tmpTodoList, &tmp)
 		}
 	}
+	var tmpCat Cat
+	if d.Cat != nil {
+		tmpCat = d.Cat.MergeToType()
+	}
+	var tmpCreditCards []*CreditCard
+	if d.CreditCards != nil {
+		tmpCreditCards = make([]*CreditCard, len(d.CreditCards))
+		for _, v := range d.CreditCards {
+			tmp := v.MergeToType()
+			tmpCreditCards = append(tmpCreditCards, &tmp)
+		}
+	}
 	return User{
-		ID:        tmpID,
-		Name:      tmpName,
-		CompanyID: tmpCompanyID,
-		Company:   &tmpCompany,
-		TodoList:  tmpTodoList,
+		ID:          tmpID,
+		Name:        tmpName,
+		CompanyID:   tmpCompanyID,
+		Company:     &tmpCompany,
+		TodoList:    tmpTodoList,
+		Cat:         &tmpCat,
+		CreditCards: tmpCreditCards,
 	}
 }

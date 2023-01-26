@@ -7,8 +7,19 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+type Entities []Entity
+
+func (e Entities) ByName(name string) *Entity {
+	for _, v := range e {
+		if v.Name() == name {
+			return &v
+		}
+	}
+	return nil
+}
+
 type Object struct {
-	Entities []Entity
+	Entities Entities
 	Raw      *ast.Definition
 }
 
@@ -48,7 +59,11 @@ func (o Object) PrimaryKeyField() *Entity {
 }
 
 func (o Object) ForeignNameKeyName(fieldName string) string {
-	foreignName := xstrings.ToSnakeCase(fieldName + "ID")
+	fN := o.Entities.ByName(fieldName + "ID")
+	foreignName := ""
+	if fN != nil {
+		foreignName = xstrings.ToSnakeCase(fN.Name())
+	}
 
 out:
 	for _, e := range o.Entities {
@@ -58,6 +73,9 @@ out:
 				commands := strings.Split(v, ";")
 				for _, c := range commands {
 					foreignName = strings.Split(c, ":")[1]
+					if fv := o.Entities.ByName(xstrings.ToCamelCase(foreignName)); fv == nil {
+						foreignName = ""
+					}
 					break out
 				}
 			}

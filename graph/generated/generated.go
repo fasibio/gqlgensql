@@ -36,15 +36,21 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	AddCatPayload() AddCatPayloadResolver
 	AddCompanyPayload() AddCompanyPayloadResolver
+	AddCreditCardPayload() AddCreditCardPayloadResolver
 	AddTodoPayload() AddTodoPayloadResolver
 	AddUserPayload() AddUserPayloadResolver
+	DeleteCatPayload() DeleteCatPayloadResolver
 	DeleteCompanyPayload() DeleteCompanyPayloadResolver
+	DeleteCreditCardPayload() DeleteCreditCardPayloadResolver
 	DeleteTodoPayload() DeleteTodoPayloadResolver
 	DeleteUserPayload() DeleteUserPayloadResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
+	UpdateCatPayload() UpdateCatPayloadResolver
 	UpdateCompanyPayload() UpdateCompanyPayloadResolver
+	UpdateCreditCardPayload() UpdateCreditCardPayloadResolver
 	UpdateTodoPayload() UpdateTodoPayloadResolver
 	UpdateUserPayload() UpdateUserPayloadResolver
 }
@@ -61,8 +67,16 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	AddCatPayload struct {
+		Cat func(childComplexity int, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) int
+	}
+
 	AddCompanyPayload struct {
 		Company func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
+	}
+
+	AddCreditCardPayload struct {
+		CreditCard func(childComplexity int, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) int
 	}
 
 	AddTodoPayload struct {
@@ -71,6 +85,19 @@ type ComplexityRoot struct {
 
 	AddUserPayload struct {
 		User func(childComplexity int, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) int
+	}
+
+	Cat struct {
+		Age    func(childComplexity int) int
+		ID     func(childComplexity int) int
+		Name   func(childComplexity int) int
+		UserID func(childComplexity int) int
+	}
+
+	CatQueryResult struct {
+		Count      func(childComplexity int) int
+		Data       func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	Company struct {
@@ -87,10 +114,34 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	CreditCard struct {
+		ID     func(childComplexity int) int
+		Number func(childComplexity int) int
+		UserID func(childComplexity int) int
+	}
+
+	CreditCardQueryResult struct {
+		Count      func(childComplexity int) int
+		Data       func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	DeleteCatPayload struct {
+		Cat   func(childComplexity int, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) int
+		Count func(childComplexity int) int
+		Msg   func(childComplexity int) int
+	}
+
 	DeleteCompanyPayload struct {
 		Company func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
 		Count   func(childComplexity int) int
 		Msg     func(childComplexity int) int
+	}
+
+	DeleteCreditCardPayload struct {
+		Count      func(childComplexity int) int
+		CreditCard func(childComplexity int, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) int
+		Msg        func(childComplexity int) int
 	}
 
 	DeleteTodoPayload struct {
@@ -106,28 +157,38 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddCompany    func(childComplexity int, input []*model.CompanyInput) int
-		AddTodo       func(childComplexity int, input []*model.TodoInput) int
-		AddTodo2Users func(childComplexity int, input model.TodoRef2UsersInput) int
-		AddUser       func(childComplexity int, input []*model.UserInput) int
-		AddUser2Todos func(childComplexity int, input model.UserRef2TodosInput) int
-		B             func(childComplexity int) int
-		DeleteCompany func(childComplexity int, filter model.CompanyFiltersInput) int
-		DeleteTodo    func(childComplexity int, filter model.TodoFiltersInput) int
-		DeleteUser    func(childComplexity int, filter model.UserFiltersInput) int
-		UpdateCompany func(childComplexity int, input model.UpdateCompanyInput) int
-		UpdateTodo    func(childComplexity int, input model.UpdateTodoInput) int
-		UpdateUser    func(childComplexity int, input model.UpdateUserInput) int
+		AddCat           func(childComplexity int, input []*model.CatInput) int
+		AddCompany       func(childComplexity int, input []*model.CompanyInput) int
+		AddCreditCard    func(childComplexity int, input []*model.CreditCardInput) int
+		AddTodo          func(childComplexity int, input []*model.TodoInput) int
+		AddTodo2Users    func(childComplexity int, input model.TodoRef2UsersInput) int
+		AddUser          func(childComplexity int, input []*model.UserInput) int
+		AddUser2Todos    func(childComplexity int, input model.UserRef2TodosInput) int
+		B                func(childComplexity int) int
+		DeleteCat        func(childComplexity int, filter model.CatFiltersInput) int
+		DeleteCompany    func(childComplexity int, filter model.CompanyFiltersInput) int
+		DeleteCreditCard func(childComplexity int, filter model.CreditCardFiltersInput) int
+		DeleteTodo       func(childComplexity int, filter model.TodoFiltersInput) int
+		DeleteUser       func(childComplexity int, filter model.UserFiltersInput) int
+		UpdateCat        func(childComplexity int, input model.UpdateCatInput) int
+		UpdateCompany    func(childComplexity int, input model.UpdateCompanyInput) int
+		UpdateCreditCard func(childComplexity int, input model.UpdateCreditCardInput) int
+		UpdateTodo       func(childComplexity int, input model.UpdateTodoInput) int
+		UpdateUser       func(childComplexity int, input model.UpdateUserInput) int
 	}
 
 	Query struct {
-		A            func(childComplexity int) int
-		GetCompany   func(childComplexity int, id int) int
-		GetTodo      func(childComplexity int, id int) int
-		GetUser      func(childComplexity int, id int) int
-		QueryCompany func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
-		QueryTodo    func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
-		QueryUser    func(childComplexity int, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) int
+		A               func(childComplexity int) int
+		GetCat          func(childComplexity int, id int) int
+		GetCompany      func(childComplexity int, id int) int
+		GetCreditCard   func(childComplexity int, id int) int
+		GetTodo         func(childComplexity int, id int) int
+		GetUser         func(childComplexity int, id int) int
+		QueryCat        func(childComplexity int, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) int
+		QueryCompany    func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
+		QueryCreditCard func(childComplexity int, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) int
+		QueryTodo       func(childComplexity int, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) int
+		QueryUser       func(childComplexity int, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) int
 	}
 
 	Todo struct {
@@ -144,9 +205,19 @@ type ComplexityRoot struct {
 		TotalCount func(childComplexity int) int
 	}
 
+	UpdateCatPayload struct {
+		Cat   func(childComplexity int, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) int
+		Count func(childComplexity int) int
+	}
+
 	UpdateCompanyPayload struct {
 		Company func(childComplexity int, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) int
 		Count   func(childComplexity int) int
+	}
+
+	UpdateCreditCardPayload struct {
+		Count      func(childComplexity int) int
+		CreditCard func(childComplexity int, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) int
 	}
 
 	UpdateTodoPayload struct {
@@ -160,11 +231,13 @@ type ComplexityRoot struct {
 	}
 
 	User struct {
-		Company   func(childComplexity int) int
-		CompanyID func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Name      func(childComplexity int) int
-		TodoList  func(childComplexity int) int
+		Cat         func(childComplexity int) int
+		Company     func(childComplexity int) int
+		CompanyID   func(childComplexity int) int
+		CreditCards func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		TodoList    func(childComplexity int) int
 	}
 
 	UserQueryResult struct {
@@ -174,8 +247,14 @@ type ComplexityRoot struct {
 	}
 }
 
+type AddCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.AddCatPayload, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error)
+}
 type AddCompanyPayloadResolver interface {
 	Company(ctx context.Context, obj *model.AddCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type AddCreditCardPayloadResolver interface {
+	CreditCard(ctx context.Context, obj *model.AddCreditCardPayload, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error)
 }
 type AddTodoPayloadResolver interface {
 	Todo(ctx context.Context, obj *model.AddTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
@@ -183,8 +262,14 @@ type AddTodoPayloadResolver interface {
 type AddUserPayloadResolver interface {
 	User(ctx context.Context, obj *model.AddUserPayload, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
 }
+type DeleteCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.DeleteCatPayload, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error)
+}
 type DeleteCompanyPayloadResolver interface {
 	Company(ctx context.Context, obj *model.DeleteCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type DeleteCreditCardPayloadResolver interface {
+	CreditCard(ctx context.Context, obj *model.DeleteCreditCardPayload, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error)
 }
 type DeleteTodoPayloadResolver interface {
 	Todo(ctx context.Context, obj *model.DeleteTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
@@ -194,9 +279,15 @@ type DeleteUserPayloadResolver interface {
 }
 type MutationResolver interface {
 	B(ctx context.Context) (*int, error)
+	AddCat(ctx context.Context, input []*model.CatInput) (*model.AddCatPayload, error)
+	UpdateCat(ctx context.Context, input model.UpdateCatInput) (*model.UpdateCatPayload, error)
+	DeleteCat(ctx context.Context, filter model.CatFiltersInput) (*model.DeleteCatPayload, error)
 	AddCompany(ctx context.Context, input []*model.CompanyInput) (*model.AddCompanyPayload, error)
 	UpdateCompany(ctx context.Context, input model.UpdateCompanyInput) (*model.UpdateCompanyPayload, error)
 	DeleteCompany(ctx context.Context, filter model.CompanyFiltersInput) (*model.DeleteCompanyPayload, error)
+	AddCreditCard(ctx context.Context, input []*model.CreditCardInput) (*model.AddCreditCardPayload, error)
+	UpdateCreditCard(ctx context.Context, input model.UpdateCreditCardInput) (*model.UpdateCreditCardPayload, error)
+	DeleteCreditCard(ctx context.Context, filter model.CreditCardFiltersInput) (*model.DeleteCreditCardPayload, error)
 	AddUser2Todos(ctx context.Context, input model.UserRef2TodosInput) (*model.UpdateTodoPayload, error)
 	AddTodo(ctx context.Context, input []*model.TodoInput) (*model.AddTodoPayload, error)
 	UpdateTodo(ctx context.Context, input model.UpdateTodoInput) (*model.UpdateTodoPayload, error)
@@ -208,15 +299,25 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	A(ctx context.Context) (*string, error)
+	GetCat(ctx context.Context, id int) (*model.Cat, error)
+	QueryCat(ctx context.Context, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error)
 	GetCompany(ctx context.Context, id int) (*model.Company, error)
 	QueryCompany(ctx context.Context, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+	GetCreditCard(ctx context.Context, id int) (*model.CreditCard, error)
+	QueryCreditCard(ctx context.Context, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error)
 	GetTodo(ctx context.Context, id int) (*model.Todo, error)
 	QueryTodo(ctx context.Context, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
 	GetUser(ctx context.Context, id int) (*model.User, error)
 	QueryUser(ctx context.Context, filter *model.UserFiltersInput, order *model.UserOrder, first *int, offset *int) (*model.UserQueryResult, error)
 }
+type UpdateCatPayloadResolver interface {
+	Cat(ctx context.Context, obj *model.UpdateCatPayload, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error)
+}
 type UpdateCompanyPayloadResolver interface {
 	Company(ctx context.Context, obj *model.UpdateCompanyPayload, filter *model.CompanyFiltersInput, order *model.CompanyOrder, first *int, offset *int) (*model.CompanyQueryResult, error)
+}
+type UpdateCreditCardPayloadResolver interface {
+	CreditCard(ctx context.Context, obj *model.UpdateCreditCardPayload, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error)
 }
 type UpdateTodoPayloadResolver interface {
 	Todo(ctx context.Context, obj *model.UpdateTodoPayload, filter *model.TodoFiltersInput, order *model.TodoOrder, first *int, offset *int) (*model.TodoQueryResult, error)
@@ -240,6 +341,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "AddCatPayload.cat":
+		if e.complexity.AddCatPayload.Cat == nil {
+			break
+		}
+
+		args, err := ec.field_AddCatPayload_cat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.AddCatPayload.Cat(childComplexity, args["filter"].(*model.CatFiltersInput), args["order"].(*model.CatOrder), args["first"].(*int), args["offset"].(*int)), true
+
 	case "AddCompanyPayload.company":
 		if e.complexity.AddCompanyPayload.Company == nil {
 			break
@@ -251,6 +364,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddCompanyPayload.Company(childComplexity, args["filter"].(*model.CompanyFiltersInput), args["order"].(*model.CompanyOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "AddCreditCardPayload.creditCard":
+		if e.complexity.AddCreditCardPayload.CreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_AddCreditCardPayload_creditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.AddCreditCardPayload.CreditCard(childComplexity, args["filter"].(*model.CreditCardFiltersInput), args["order"].(*model.CreditCardOrder), args["first"].(*int), args["offset"].(*int)), true
 
 	case "AddTodoPayload.todo":
 		if e.complexity.AddTodoPayload.Todo == nil {
@@ -275,6 +400,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AddUserPayload.User(childComplexity, args["filter"].(*model.UserFiltersInput), args["order"].(*model.UserOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "Cat.age":
+		if e.complexity.Cat.Age == nil {
+			break
+		}
+
+		return e.complexity.Cat.Age(childComplexity), true
+
+	case "Cat.id":
+		if e.complexity.Cat.ID == nil {
+			break
+		}
+
+		return e.complexity.Cat.ID(childComplexity), true
+
+	case "Cat.name":
+		if e.complexity.Cat.Name == nil {
+			break
+		}
+
+		return e.complexity.Cat.Name(childComplexity), true
+
+	case "Cat.UserID":
+		if e.complexity.Cat.UserID == nil {
+			break
+		}
+
+		return e.complexity.Cat.UserID(childComplexity), true
+
+	case "CatQueryResult.count":
+		if e.complexity.CatQueryResult.Count == nil {
+			break
+		}
+
+		return e.complexity.CatQueryResult.Count(childComplexity), true
+
+	case "CatQueryResult.data":
+		if e.complexity.CatQueryResult.Data == nil {
+			break
+		}
+
+		return e.complexity.CatQueryResult.Data(childComplexity), true
+
+	case "CatQueryResult.totalCount":
+		if e.complexity.CatQueryResult.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.CatQueryResult.TotalCount(childComplexity), true
 
 	case "Company.description":
 		if e.complexity.Company.Description == nil {
@@ -332,6 +506,74 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CompanyQueryResult.TotalCount(childComplexity), true
 
+	case "CreditCard.id":
+		if e.complexity.CreditCard.ID == nil {
+			break
+		}
+
+		return e.complexity.CreditCard.ID(childComplexity), true
+
+	case "CreditCard.number":
+		if e.complexity.CreditCard.Number == nil {
+			break
+		}
+
+		return e.complexity.CreditCard.Number(childComplexity), true
+
+	case "CreditCard.userID":
+		if e.complexity.CreditCard.UserID == nil {
+			break
+		}
+
+		return e.complexity.CreditCard.UserID(childComplexity), true
+
+	case "CreditCardQueryResult.count":
+		if e.complexity.CreditCardQueryResult.Count == nil {
+			break
+		}
+
+		return e.complexity.CreditCardQueryResult.Count(childComplexity), true
+
+	case "CreditCardQueryResult.data":
+		if e.complexity.CreditCardQueryResult.Data == nil {
+			break
+		}
+
+		return e.complexity.CreditCardQueryResult.Data(childComplexity), true
+
+	case "CreditCardQueryResult.totalCount":
+		if e.complexity.CreditCardQueryResult.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.CreditCardQueryResult.TotalCount(childComplexity), true
+
+	case "DeleteCatPayload.cat":
+		if e.complexity.DeleteCatPayload.Cat == nil {
+			break
+		}
+
+		args, err := ec.field_DeleteCatPayload_cat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.DeleteCatPayload.Cat(childComplexity, args["filter"].(*model.CatFiltersInput), args["order"].(*model.CatOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "DeleteCatPayload.count":
+		if e.complexity.DeleteCatPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.DeleteCatPayload.Count(childComplexity), true
+
+	case "DeleteCatPayload.msg":
+		if e.complexity.DeleteCatPayload.Msg == nil {
+			break
+		}
+
+		return e.complexity.DeleteCatPayload.Msg(childComplexity), true
+
 	case "DeleteCompanyPayload.company":
 		if e.complexity.DeleteCompanyPayload.Company == nil {
 			break
@@ -357,6 +599,32 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DeleteCompanyPayload.Msg(childComplexity), true
+
+	case "DeleteCreditCardPayload.count":
+		if e.complexity.DeleteCreditCardPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.DeleteCreditCardPayload.Count(childComplexity), true
+
+	case "DeleteCreditCardPayload.creditCard":
+		if e.complexity.DeleteCreditCardPayload.CreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_DeleteCreditCardPayload_creditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.DeleteCreditCardPayload.CreditCard(childComplexity, args["filter"].(*model.CreditCardFiltersInput), args["order"].(*model.CreditCardOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "DeleteCreditCardPayload.msg":
+		if e.complexity.DeleteCreditCardPayload.Msg == nil {
+			break
+		}
+
+		return e.complexity.DeleteCreditCardPayload.Msg(childComplexity), true
 
 	case "DeleteTodoPayload.count":
 		if e.complexity.DeleteTodoPayload.Count == nil {
@@ -410,6 +678,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DeleteUserPayload.User(childComplexity, args["filter"].(*model.UserFiltersInput), args["order"].(*model.UserOrder), args["first"].(*int), args["offset"].(*int)), true
 
+	case "Mutation.addCat":
+		if e.complexity.Mutation.AddCat == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addCat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddCat(childComplexity, args["input"].([]*model.CatInput)), true
+
 	case "Mutation.addCompany":
 		if e.complexity.Mutation.AddCompany == nil {
 			break
@@ -421,6 +701,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddCompany(childComplexity, args["input"].([]*model.CompanyInput)), true
+
+	case "Mutation.addCreditCard":
+		if e.complexity.Mutation.AddCreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addCreditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddCreditCard(childComplexity, args["input"].([]*model.CreditCardInput)), true
 
 	case "Mutation.addTodo":
 		if e.complexity.Mutation.AddTodo == nil {
@@ -477,6 +769,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.B(childComplexity), true
 
+	case "Mutation.deleteCat":
+		if e.complexity.Mutation.DeleteCat == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCat(childComplexity, args["filter"].(model.CatFiltersInput)), true
+
 	case "Mutation.deleteCompany":
 		if e.complexity.Mutation.DeleteCompany == nil {
 			break
@@ -488,6 +792,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteCompany(childComplexity, args["filter"].(model.CompanyFiltersInput)), true
+
+	case "Mutation.deleteCreditCard":
+		if e.complexity.Mutation.DeleteCreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteCreditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteCreditCard(childComplexity, args["filter"].(model.CreditCardFiltersInput)), true
 
 	case "Mutation.deleteTodo":
 		if e.complexity.Mutation.DeleteTodo == nil {
@@ -513,6 +829,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteUser(childComplexity, args["filter"].(model.UserFiltersInput)), true
 
+	case "Mutation.updateCat":
+		if e.complexity.Mutation.UpdateCat == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCat(childComplexity, args["input"].(model.UpdateCatInput)), true
+
 	case "Mutation.updateCompany":
 		if e.complexity.Mutation.UpdateCompany == nil {
 			break
@@ -524,6 +852,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateCompany(childComplexity, args["input"].(model.UpdateCompanyInput)), true
+
+	case "Mutation.updateCreditCard":
+		if e.complexity.Mutation.UpdateCreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateCreditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateCreditCard(childComplexity, args["input"].(model.UpdateCreditCardInput)), true
 
 	case "Mutation.updateTodo":
 		if e.complexity.Mutation.UpdateTodo == nil {
@@ -556,6 +896,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.A(childComplexity), true
 
+	case "Query.getCat":
+		if e.complexity.Query.GetCat == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCat(childComplexity, args["id"].(int)), true
+
 	case "Query.getCompany":
 		if e.complexity.Query.GetCompany == nil {
 			break
@@ -567,6 +919,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCompany(childComplexity, args["id"].(int)), true
+
+	case "Query.getCreditCard":
+		if e.complexity.Query.GetCreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCreditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCreditCard(childComplexity, args["id"].(int)), true
 
 	case "Query.getTodo":
 		if e.complexity.Query.GetTodo == nil {
@@ -592,6 +956,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUser(childComplexity, args["id"].(int)), true
 
+	case "Query.queryCat":
+		if e.complexity.Query.QueryCat == nil {
+			break
+		}
+
+		args, err := ec.field_Query_queryCat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.QueryCat(childComplexity, args["filter"].(*model.CatFiltersInput), args["order"].(*model.CatOrder), args["first"].(*int), args["offset"].(*int)), true
+
 	case "Query.queryCompany":
 		if e.complexity.Query.QueryCompany == nil {
 			break
@@ -603,6 +979,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.QueryCompany(childComplexity, args["filter"].(*model.CompanyFiltersInput), args["order"].(*model.CompanyOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "Query.queryCreditCard":
+		if e.complexity.Query.QueryCreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_Query_queryCreditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.QueryCreditCard(childComplexity, args["filter"].(*model.CreditCardFiltersInput), args["order"].(*model.CreditCardOrder), args["first"].(*int), args["offset"].(*int)), true
 
 	case "Query.queryTodo":
 		if e.complexity.Query.QueryTodo == nil {
@@ -684,6 +1072,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TodoQueryResult.TotalCount(childComplexity), true
 
+	case "UpdateCatPayload.cat":
+		if e.complexity.UpdateCatPayload.Cat == nil {
+			break
+		}
+
+		args, err := ec.field_UpdateCatPayload_cat_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UpdateCatPayload.Cat(childComplexity, args["filter"].(*model.CatFiltersInput), args["order"].(*model.CatOrder), args["first"].(*int), args["offset"].(*int)), true
+
+	case "UpdateCatPayload.count":
+		if e.complexity.UpdateCatPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.UpdateCatPayload.Count(childComplexity), true
+
 	case "UpdateCompanyPayload.company":
 		if e.complexity.UpdateCompanyPayload.Company == nil {
 			break
@@ -702,6 +1109,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UpdateCompanyPayload.Count(childComplexity), true
+
+	case "UpdateCreditCardPayload.count":
+		if e.complexity.UpdateCreditCardPayload.Count == nil {
+			break
+		}
+
+		return e.complexity.UpdateCreditCardPayload.Count(childComplexity), true
+
+	case "UpdateCreditCardPayload.creditCard":
+		if e.complexity.UpdateCreditCardPayload.CreditCard == nil {
+			break
+		}
+
+		args, err := ec.field_UpdateCreditCardPayload_creditCard_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.UpdateCreditCardPayload.CreditCard(childComplexity, args["filter"].(*model.CreditCardFiltersInput), args["order"].(*model.CreditCardOrder), args["first"].(*int), args["offset"].(*int)), true
 
 	case "UpdateTodoPayload.count":
 		if e.complexity.UpdateTodoPayload.Count == nil {
@@ -741,6 +1167,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UpdateUserPayload.User(childComplexity, args["filter"].(*model.UserFiltersInput), args["order"].(*model.UserOrder), args["first"].(*int), args["offset"].(*int)), true
 
+	case "User.cat":
+		if e.complexity.User.Cat == nil {
+			break
+		}
+
+		return e.complexity.User.Cat(childComplexity), true
+
 	case "User.company":
 		if e.complexity.User.Company == nil {
 			break
@@ -754,6 +1187,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.CompanyID(childComplexity), true
+
+	case "User.creditCards":
+		if e.complexity.User.CreditCards == nil {
+			break
+		}
+
+		return e.complexity.User.CreditCards(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -806,11 +1246,18 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputBooleanFilterInput,
+		ec.unmarshalInputCatFiltersInput,
+		ec.unmarshalInputCatInput,
+		ec.unmarshalInputCatOrder,
+		ec.unmarshalInputCatPatch,
 		ec.unmarshalInputCompanyFiltersInput,
 		ec.unmarshalInputCompanyInput,
 		ec.unmarshalInputCompanyOrder,
 		ec.unmarshalInputCompanyPatch,
-		ec.unmarshalInputCompanyWhere,
+		ec.unmarshalInputCreditCardFiltersInput,
+		ec.unmarshalInputCreditCardInput,
+		ec.unmarshalInputCreditCardOrder,
+		ec.unmarshalInputCreditCardPatch,
 		ec.unmarshalInputIDFilterInput,
 		ec.unmarshalInputIntFilterBetween,
 		ec.unmarshalInputIntFilterInput,
@@ -823,8 +1270,9 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputTodoOrder,
 		ec.unmarshalInputTodoPatch,
 		ec.unmarshalInputTodoRef2UsersInput,
-		ec.unmarshalInputTodoWhere,
+		ec.unmarshalInputUpdateCatInput,
 		ec.unmarshalInputUpdateCompanyInput,
+		ec.unmarshalInputUpdateCreditCardInput,
 		ec.unmarshalInputUpdateTodoInput,
 		ec.unmarshalInputUpdateUserInput,
 		ec.unmarshalInputUserFiltersInput,
@@ -832,7 +1280,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUserOrder,
 		ec.unmarshalInputUserPatch,
 		ec.unmarshalInputUserRef2TodosInput,
-		ec.unmarshalInputUserWhere,
 	)
 	first := true
 
@@ -927,6 +1374,21 @@ type User @SQL(query: {
   companyID: Int
   company: Company
   todoList: [Todo!]!@SQL_GORM(value:"many2many:user_todos")
+  cat: Cat
+  creditCards: [CreditCard!]
+}
+
+type CreditCard @SQL{
+  id: Int! @SQL_PRIMARY
+  number: String!
+  userID: Int!
+}
+
+type Cat @SQL{
+  id: Int! @SQL_PRIMARY
+  name: String!
+  age: Int
+  UserID: Int!
 }
 
 type Company @SQL{
@@ -1138,6 +1600,76 @@ input BooleanFilterInput{
 #  end: Date!
 #}
 
+input CatInput{
+  id: Int!
+  name: String!
+  age: Int
+  UserID: Int!
+}
+
+input CatPatch{
+  id: Int
+  name: String
+  age: Int
+  UserID: Int
+}
+
+input UpdateCatInput{
+  filter: CatFiltersInput
+  set: CatPatch
+}
+
+type AddCatPayload{
+  cat(filter: CatFiltersInput, order: CatOrder, first: Int, offset: Int): CatQueryResult!
+}
+
+type UpdateCatPayload{
+  cat(filter: CatFiltersInput, order: CatOrder, first: Int, offset: Int): CatQueryResult!
+  count: Int!
+}
+
+type DeleteCatPayload{
+  cat(filter: CatFiltersInput, order: CatOrder, first: Int, offset: Int): CatQueryResult!
+  count: Int!
+  msg: String
+}
+
+type CatQueryResult{
+  data: [Cat!]!
+  count: Int!
+  totalCount: Int!
+}
+
+enum CatOrderable {
+  id
+  name
+  age
+  UserID
+}
+input CatOrder{
+  asc: CatOrderable
+  desc: CatOrderable
+}
+
+input CatFiltersInput{
+  id: IntFilterInput
+  name: StringFilterInput
+  age: IntFilterInput
+  UserID: IntFilterInput
+  and: [CatFiltersInput]
+  or: [CatFiltersInput]
+  not: CatFiltersInput
+}
+extend type Query {
+  getCat(id: Int!): Cat 
+  queryCat(filter: CatFiltersInput, order: CatOrder, first: Int, offset: Int ): CatQueryResult 
+}
+extend type Mutation {
+  addCat(input: [CatInput!]!): AddCatPayload 
+  updateCat(input: UpdateCatInput!): UpdateCatPayload 
+  deleteCat(filter: CatFiltersInput!): DeleteCatPayload 
+}
+
 input CompanyInput{
   id: Int!
   Name: String!
@@ -1197,12 +1729,6 @@ input CompanyFiltersInput{
   or: [CompanyFiltersInput]
   not: CompanyFiltersInput
 }
-
-input CompanyWhere{
-  id: Int
-  Name: String
-  motherCompanyID: Int
-}
 extend type Query {
   getCompany(id: Int!): Company 
   queryCompany(filter: CompanyFiltersInput, order: CompanyOrder, first: Int, offset: Int ): CompanyQueryResult 
@@ -1211,6 +1737,72 @@ extend type Mutation {
   addCompany(input: [CompanyInput!]!): AddCompanyPayload 
   updateCompany(input: UpdateCompanyInput!): UpdateCompanyPayload 
   deleteCompany(filter: CompanyFiltersInput!): DeleteCompanyPayload 
+}
+
+input CreditCardInput{
+  id: Int!
+  number: String!
+  userID: Int!
+}
+
+input CreditCardPatch{
+  id: Int
+  number: String
+  userID: Int
+}
+
+input UpdateCreditCardInput{
+  filter: CreditCardFiltersInput
+  set: CreditCardPatch
+}
+
+type AddCreditCardPayload{
+  creditCard(filter: CreditCardFiltersInput, order: CreditCardOrder, first: Int, offset: Int): CreditCardQueryResult!
+}
+
+type UpdateCreditCardPayload{
+  creditCard(filter: CreditCardFiltersInput, order: CreditCardOrder, first: Int, offset: Int): CreditCardQueryResult!
+  count: Int!
+}
+
+type DeleteCreditCardPayload{
+  creditCard(filter: CreditCardFiltersInput, order: CreditCardOrder, first: Int, offset: Int): CreditCardQueryResult!
+  count: Int!
+  msg: String
+}
+
+type CreditCardQueryResult{
+  data: [CreditCard!]!
+  count: Int!
+  totalCount: Int!
+}
+
+enum CreditCardOrderable {
+  id
+  number
+  userID
+}
+input CreditCardOrder{
+  asc: CreditCardOrderable
+  desc: CreditCardOrderable
+}
+
+input CreditCardFiltersInput{
+  id: IntFilterInput
+  number: StringFilterInput
+  userID: IntFilterInput
+  and: [CreditCardFiltersInput]
+  or: [CreditCardFiltersInput]
+  not: CreditCardFiltersInput
+}
+extend type Query {
+  getCreditCard(id: Int!): CreditCard 
+  queryCreditCard(filter: CreditCardFiltersInput, order: CreditCardOrder, first: Int, offset: Int ): CreditCardQueryResult 
+}
+extend type Mutation {
+  addCreditCard(input: [CreditCardInput!]!): AddCreditCardPayload 
+  updateCreditCard(input: UpdateCreditCardInput!): UpdateCreditCardPayload 
+  deleteCreditCard(filter: CreditCardFiltersInput!): DeleteCreditCardPayload 
 }
 
 input TodoInput{
@@ -1281,13 +1873,6 @@ input TodoFiltersInput{
   or: [TodoFiltersInput]
   not: TodoFiltersInput
 }
-
-input TodoWhere{
-  id: Int
-  title: String
-  description: String
-  done: Boolean
-}
 extend type Query {
   getTodo(id: Int!): Todo 
   queryTodo(filter: TodoFiltersInput, order: TodoOrder, first: Int, offset: Int ): TodoQueryResult 
@@ -1305,6 +1890,8 @@ input UserInput{
   companyID: Int
   company: CompanyInput
   todoList: [TodoInput!]!
+  cat: CatInput
+  creditCards: [CreditCardInput!]
 }
 
 input UserPatch{
@@ -1313,6 +1900,8 @@ input UserPatch{
   companyID: Int
   company: CompanyPatch
   todoList: [TodoPatch!]
+  cat: CatPatch
+  creditCards: [CreditCardPatch!]
 }
 
 input UpdateUserInput{
@@ -1362,15 +1951,11 @@ input UserFiltersInput{
   companyID: IntFilterInput
   company:CompanyFiltersInput
   todoList:TodoFiltersInput
+  cat:CatFiltersInput
+  creditCards:CreditCardFiltersInput
   and: [UserFiltersInput]
   or: [UserFiltersInput]
   not: UserFiltersInput
-}
-
-input UserWhere{
-  id: Int
-  name: String
-  companyID: Int
 }
 extend type Query {
   getUser(id: Int!): User @A @B
@@ -1389,6 +1974,48 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_AddCatPayload_cat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CatFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CatOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCatOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_AddCompanyPayload_company_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1405,6 +2032,48 @@ func (ec *executionContext) field_AddCompanyPayload_company_args(ctx context.Con
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_AddCreditCardPayload_creditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CreditCardFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CreditCardOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCreditCardOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1515,6 +2184,48 @@ func (ec *executionContext) field_AddUserPayload_user_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_DeleteCatPayload_cat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CatFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CatOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCatOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_DeleteCompanyPayload_company_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1531,6 +2242,48 @@ func (ec *executionContext) field_DeleteCompanyPayload_company_args(ctx context.
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_DeleteCreditCardPayload_creditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CreditCardFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CreditCardOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCreditCardOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1641,6 +2394,21 @@ func (ec *executionContext) field_DeleteUserPayload_user_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addCat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*model.CatInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCatInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addCompany_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1648,6 +2416,21 @@ func (ec *executionContext) field_Mutation_addCompany_args(ctx context.Context, 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCompanyInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addCreditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*model.CreditCardInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNCreditCardInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1716,6 +2499,21 @@ func (ec *executionContext) field_Mutation_addUser_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteCat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CatFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNCatFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteCompany_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1723,6 +2521,21 @@ func (ec *executionContext) field_Mutation_deleteCompany_args(ctx context.Contex
 	if tmp, ok := rawArgs["filter"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
 		arg0, err = ec.unmarshalNCompanyFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteCreditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.CreditCardFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalNCreditCardFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1761,6 +2574,21 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateCat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateCatInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateCatInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCatInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateCompany_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1768,6 +2596,21 @@ func (ec *executionContext) field_Mutation_updateCompany_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUpdateCompanyInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateCreditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UpdateCreditCardInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateCreditCardInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCreditCardInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1821,7 +2664,37 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getCat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getCompany_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCreditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -1866,6 +2739,48 @@ func (ec *executionContext) field_Query_getUser_args(ctx context.Context, rawArg
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_queryCat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CatFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CatOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCatOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_queryCompany_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1882,6 +2797,48 @@ func (ec *executionContext) field_Query_queryCompany_args(ctx context.Context, r
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_queryCreditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CreditCardFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CreditCardOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCreditCardOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1992,6 +2949,48 @@ func (ec *executionContext) field_Query_queryUser_args(ctx context.Context, rawA
 	return args, nil
 }
 
+func (ec *executionContext) field_UpdateCatPayload_cat_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CatFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CatOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCatOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
 func (ec *executionContext) field_UpdateCompanyPayload_company_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2008,6 +3007,48 @@ func (ec *executionContext) field_UpdateCompanyPayload_company_args(ctx context.
 	if tmp, ok := rawArgs["order"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
 		arg1, err = ec.unmarshalOCompanyOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyOrder(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["order"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_UpdateCreditCardPayload_creditCard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CreditCardFiltersInput
+	if tmp, ok := rawArgs["filter"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+		arg0, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filter"] = arg0
+	var arg1 *model.CreditCardOrder
+	if tmp, ok := rawArgs["order"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order"))
+		arg1, err = ec.unmarshalOCreditCardOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2156,6 +3197,69 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
+func (ec *executionContext) _AddCatPayload_cat(ctx context.Context, field graphql.CollectedField, obj *model.AddCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddCatPayload_cat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AddCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFiltersInput), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CatQueryResult)
+	fc.Result = res
+	return ec.marshalNCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddCatPayload_cat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddCatPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CatQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CatQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CatQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_AddCatPayload_cat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _AddCompanyPayload_company(ctx context.Context, field graphql.CollectedField, obj *model.AddCompanyPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_AddCompanyPayload_company(ctx, field)
 	if err != nil {
@@ -2213,6 +3317,69 @@ func (ec *executionContext) fieldContext_AddCompanyPayload_company(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_AddCompanyPayload_company_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AddCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField, obj *model.AddCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AddCreditCardPayload_creditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.AddCreditCardPayload().CreditCard(rctx, obj, fc.Args["filter"].(*model.CreditCardFiltersInput), fc.Args["order"].(*model.CreditCardOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CreditCardQueryResult)
+	fc.Result = res
+	return ec.marshalNCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AddCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AddCreditCardPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CreditCardQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CreditCardQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CreditCardQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCardQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_AddCreditCardPayload_creditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2341,6 +3508,321 @@ func (ec *executionContext) fieldContext_AddUserPayload_user(ctx context.Context
 	if fc.Args, err = ec.field_AddUserPayload_user_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cat_id(ctx context.Context, field graphql.CollectedField, obj *model.Cat) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cat_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cat_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cat",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cat_name(ctx context.Context, field graphql.CollectedField, obj *model.Cat) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cat_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cat_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cat",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cat_age(ctx context.Context, field graphql.CollectedField, obj *model.Cat) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cat_age(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Age, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cat_age(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cat",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Cat_UserID(ctx context.Context, field graphql.CollectedField, obj *model.Cat) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Cat_UserID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Cat_UserID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Cat",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CatQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.CatQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CatQueryResult_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Cat)
+	fc.Result = res
+	return ec.marshalNCat2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CatQueryResult_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cat_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cat_name(ctx, field)
+			case "age":
+				return ec.fieldContext_Cat_age(ctx, field)
+			case "UserID":
+				return ec.fieldContext_Cat_UserID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cat", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CatQueryResult_count(ctx context.Context, field graphql.CollectedField, obj *model.CatQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CatQueryResult_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CatQueryResult_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CatQueryResult_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.CatQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CatQueryResult_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CatQueryResult_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CatQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
 	}
 	return fc, nil
 }
@@ -2712,6 +4194,426 @@ func (ec *executionContext) fieldContext_CompanyQueryResult_totalCount(ctx conte
 	return fc, nil
 }
 
+func (ec *executionContext) _CreditCard_id(ctx context.Context, field graphql.CollectedField, obj *model.CreditCard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCard_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCard_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditCard_number(ctx context.Context, field graphql.CollectedField, obj *model.CreditCard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCard_number(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Number, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCard_number(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditCard_userID(ctx context.Context, field graphql.CollectedField, obj *model.CreditCard) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCard_userID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCard_userID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditCardQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.CreditCardQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCardQueryResult_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CreditCard)
+	fc.Result = res
+	return ec.marshalNCreditCard2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCardQueryResult_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCardQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CreditCard_id(ctx, field)
+			case "number":
+				return ec.fieldContext_CreditCard_number(ctx, field)
+			case "userID":
+				return ec.fieldContext_CreditCard_userID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCard", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditCardQueryResult_count(ctx context.Context, field graphql.CollectedField, obj *model.CreditCardQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCardQueryResult_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCardQueryResult_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCardQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CreditCardQueryResult_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.CreditCardQueryResult) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CreditCardQueryResult_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CreditCardQueryResult_totalCount(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CreditCardQueryResult",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCatPayload_cat(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCatPayload_cat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DeleteCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFiltersInput), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CatQueryResult)
+	fc.Result = res
+	return ec.marshalNCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCatPayload_cat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCatPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CatQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CatQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CatQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_DeleteCatPayload_cat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCatPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCatPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCatPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCatPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCatPayload_msg(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCatPayload_msg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Msg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCatPayload_msg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCatPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _DeleteCompanyPayload_company(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCompanyPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_DeleteCompanyPayload_company(ctx, field)
 	if err != nil {
@@ -2850,6 +4752,154 @@ func (ec *executionContext) _DeleteCompanyPayload_msg(ctx context.Context, field
 func (ec *executionContext) fieldContext_DeleteCompanyPayload_msg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "DeleteCompanyPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCreditCardPayload_creditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.DeleteCreditCardPayload().CreditCard(rctx, obj, fc.Args["filter"].(*model.CreditCardFiltersInput), fc.Args["order"].(*model.CreditCardOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CreditCardQueryResult)
+	fc.Result = res
+	return ec.marshalNCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCreditCardPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CreditCardQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CreditCardQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CreditCardQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCardQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_DeleteCreditCardPayload_creditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCreditCardPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCreditCardPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCreditCardPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCreditCardPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DeleteCreditCardPayload_msg(ctx context.Context, field graphql.CollectedField, obj *model.DeleteCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_DeleteCreditCardPayload_msg(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Msg, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_DeleteCreditCardPayload_msg(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DeleteCreditCardPayload",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -3197,6 +5247,180 @@ func (ec *executionContext) fieldContext_Mutation_b(ctx context.Context, field g
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addCat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addCat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddCat(rctx, fc.Args["input"].([]*model.CatInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.AddCatPayload)
+	fc.Result = res
+	return ec.marshalOAddCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddCatPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addCat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cat":
+				return ec.fieldContext_AddCatPayload_cat(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AddCatPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addCat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateCat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateCat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCat(rctx, fc.Args["input"].(model.UpdateCatInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateCatPayload)
+	fc.Result = res
+	return ec.marshalOUpdateCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCatPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateCat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cat":
+				return ec.fieldContext_UpdateCatPayload_cat(ctx, field)
+			case "count":
+				return ec.fieldContext_UpdateCatPayload_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateCatPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateCat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteCat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteCat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteCat(rctx, fc.Args["filter"].(model.CatFiltersInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteCatPayload)
+	fc.Result = res
+	return ec.marshalODeleteCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteCatPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteCat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cat":
+				return ec.fieldContext_DeleteCatPayload_cat(ctx, field)
+			case "count":
+				return ec.fieldContext_DeleteCatPayload_count(ctx, field)
+			case "msg":
+				return ec.fieldContext_DeleteCatPayload_msg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteCatPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteCat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_addCompany(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_addCompany(ctx, field)
 	if err != nil {
@@ -3365,6 +5589,180 @@ func (ec *executionContext) fieldContext_Mutation_deleteCompany(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteCompany_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addCreditCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addCreditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddCreditCard(rctx, fc.Args["input"].([]*model.CreditCardInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.AddCreditCardPayload)
+	fc.Result = res
+	return ec.marshalOAddCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddCreditCardPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addCreditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "creditCard":
+				return ec.fieldContext_AddCreditCardPayload_creditCard(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type AddCreditCardPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addCreditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateCreditCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateCreditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateCreditCard(rctx, fc.Args["input"].(model.UpdateCreditCardInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UpdateCreditCardPayload)
+	fc.Result = res
+	return ec.marshalOUpdateCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCreditCardPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateCreditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "creditCard":
+				return ec.fieldContext_UpdateCreditCardPayload_creditCard(ctx, field)
+			case "count":
+				return ec.fieldContext_UpdateCreditCardPayload_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UpdateCreditCardPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateCreditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteCreditCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteCreditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteCreditCard(rctx, fc.Args["filter"].(model.CreditCardFiltersInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.DeleteCreditCardPayload)
+	fc.Result = res
+	return ec.marshalODeleteCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteCreditCardPayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteCreditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "creditCard":
+				return ec.fieldContext_DeleteCreditCardPayload_creditCard(ctx, field)
+			case "count":
+				return ec.fieldContext_DeleteCreditCardPayload_count(ctx, field)
+			case "msg":
+				return ec.fieldContext_DeleteCreditCardPayload_msg(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DeleteCreditCardPayload", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteCreditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3980,6 +6378,128 @@ func (ec *executionContext) fieldContext_Query_a(ctx context.Context, field grap
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getCat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCat(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cat)
+	fc.Result = res
+	return ec.marshalOCat2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cat_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cat_name(ctx, field)
+			case "age":
+				return ec.fieldContext_Cat_age(ctx, field)
+			case "UserID":
+				return ec.fieldContext_Cat_UserID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cat", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_queryCat(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_queryCat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().QueryCat(rctx, fc.Args["filter"].(*model.CatFiltersInput), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CatQueryResult)
+	fc.Result = res
+	return ec.marshalOCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_queryCat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CatQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CatQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CatQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_queryCat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_getCompany(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_getCompany(ctx, field)
 	if err != nil {
@@ -4098,6 +6618,126 @@ func (ec *executionContext) fieldContext_Query_queryCompany(ctx context.Context,
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_queryCompany_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getCreditCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCreditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCreditCard(rctx, fc.Args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CreditCard)
+	fc.Result = res
+	return ec.marshalOCreditCard2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCard(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCreditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CreditCard_id(ctx, field)
+			case "number":
+				return ec.fieldContext_CreditCard_number(ctx, field)
+			case "userID":
+				return ec.fieldContext_CreditCard_userID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCard", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCreditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_queryCreditCard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_queryCreditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().QueryCreditCard(rctx, fc.Args["filter"].(*model.CreditCardFiltersInput), fc.Args["order"].(*model.CreditCardOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CreditCardQueryResult)
+	fc.Result = res
+	return ec.marshalOCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_queryCreditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CreditCardQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CreditCardQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CreditCardQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCardQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_queryCreditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -4300,6 +6940,10 @@ func (ec *executionContext) fieldContext_Query_getUser(ctx context.Context, fiel
 				return ec.fieldContext_User_company(ctx, field)
 			case "todoList":
 				return ec.fieldContext_User_todoList(ctx, field)
+			case "cat":
+				return ec.fieldContext_User_cat(ctx, field)
+			case "creditCards":
+				return ec.fieldContext_User_creditCards(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4755,6 +7399,10 @@ func (ec *executionContext) fieldContext_Todo_users(ctx context.Context, field g
 				return ec.fieldContext_User_company(ctx, field)
 			case "todoList":
 				return ec.fieldContext_User_todoList(ctx, field)
+			case "cat":
+				return ec.fieldContext_User_cat(ctx, field)
+			case "creditCards":
+				return ec.fieldContext_User_creditCards(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -4906,6 +7554,113 @@ func (ec *executionContext) fieldContext_TodoQueryResult_totalCount(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _UpdateCatPayload_cat(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateCatPayload_cat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UpdateCatPayload().Cat(rctx, obj, fc.Args["filter"].(*model.CatFiltersInput), fc.Args["order"].(*model.CatOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CatQueryResult)
+	fc.Result = res
+	return ec.marshalNCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateCatPayload_cat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateCatPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CatQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CatQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CatQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CatQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UpdateCatPayload_cat_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateCatPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCatPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateCatPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateCatPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateCatPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UpdateCompanyPayload_company(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCompanyPayload) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UpdateCompanyPayload_company(ctx, field)
 	if err != nil {
@@ -5003,6 +7758,113 @@ func (ec *executionContext) _UpdateCompanyPayload_count(ctx context.Context, fie
 func (ec *executionContext) fieldContext_UpdateCompanyPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UpdateCompanyPayload",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateCreditCardPayload_creditCard(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UpdateCreditCardPayload().CreditCard(rctx, obj, fc.Args["filter"].(*model.CreditCardFiltersInput), fc.Args["order"].(*model.CreditCardOrder), fc.Args["first"].(*int), fc.Args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.CreditCardQueryResult)
+	fc.Result = res
+	return ec.marshalNCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateCreditCardPayload_creditCard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateCreditCardPayload",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_CreditCardQueryResult_data(ctx, field)
+			case "count":
+				return ec.fieldContext_CreditCardQueryResult_count(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_CreditCardQueryResult_totalCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCardQueryResult", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_UpdateCreditCardPayload_creditCard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UpdateCreditCardPayload_count(ctx context.Context, field graphql.CollectedField, obj *model.UpdateCreditCardPayload) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UpdateCreditCardPayload_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UpdateCreditCardPayload_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UpdateCreditCardPayload",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -5465,6 +8327,106 @@ func (ec *executionContext) fieldContext_User_todoList(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _User_cat(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_cat(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cat, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Cat)
+	fc.Result = res
+	return ec.marshalOCat2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCat(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_cat(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Cat_id(ctx, field)
+			case "name":
+				return ec.fieldContext_Cat_name(ctx, field)
+			case "age":
+				return ec.fieldContext_Cat_age(ctx, field)
+			case "UserID":
+				return ec.fieldContext_Cat_UserID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Cat", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_creditCards(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_creditCards(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreditCards, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CreditCard)
+	fc.Result = res
+	return ec.marshalOCreditCard2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_creditCards(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_CreditCard_id(ctx, field)
+			case "number":
+				return ec.fieldContext_CreditCard_number(ctx, field)
+			case "userID":
+				return ec.fieldContext_CreditCard_userID(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CreditCard", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserQueryResult_data(ctx context.Context, field graphql.CollectedField, obj *model.UserQueryResult) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserQueryResult_data(ctx, field)
 	if err != nil {
@@ -5514,6 +8476,10 @@ func (ec *executionContext) fieldContext_UserQueryResult_data(ctx context.Contex
 				return ec.fieldContext_User_company(ctx, field)
 			case "todoList":
 				return ec.fieldContext_User_todoList(ctx, field)
+			case "cat":
+				return ec.fieldContext_User_cat(ctx, field)
+			case "creditCards":
+				return ec.fieldContext_User_creditCards(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
@@ -7450,6 +10416,222 @@ func (ec *executionContext) unmarshalInputBooleanFilterInput(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCatFiltersInput(ctx context.Context, obj interface{}) (model.CatFiltersInput, error) {
+	var it model.CatFiltersInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "age", "UserID", "and", "or", "not"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "age":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("age"))
+			it.Age, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "UserID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			it.UserID, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOCatFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOCatFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCatInput(ctx context.Context, obj interface{}) (model.CatInput, error) {
+	var it model.CatInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "age", "UserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "age":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("age"))
+			it.Age, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "UserID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			it.UserID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCatOrder(ctx context.Context, obj interface{}) (model.CatOrder, error) {
+	var it model.CatOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"asc", "desc"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "asc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("asc"))
+			it.Asc, err = ec.unmarshalOCatOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "desc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("desc"))
+			it.Desc, err = ec.unmarshalOCatOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCatPatch(ctx context.Context, obj interface{}) (model.CatPatch, error) {
+	var it model.CatPatch
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "name", "age", "UserID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "age":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("age"))
+			it.Age, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "UserID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UserID"))
+			it.UserID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCompanyFiltersInput(ctx context.Context, obj interface{}) (model.CompanyFiltersInput, error) {
 	var it model.CompanyFiltersInput
 	asMap := map[string]interface{}{}
@@ -7666,14 +10848,162 @@ func (ec *executionContext) unmarshalInputCompanyPatch(ctx context.Context, obj 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputCompanyWhere(ctx context.Context, obj interface{}) (model.CompanyWhere, error) {
-	var it model.CompanyWhere
+func (ec *executionContext) unmarshalInputCreditCardFiltersInput(ctx context.Context, obj interface{}) (model.CreditCardFiltersInput, error) {
+	var it model.CreditCardFiltersInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "Name", "motherCompanyID"}
+	fieldsInOrder := [...]string{"id", "number", "userID", "and", "or", "not"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "number":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
+			it.Number, err = ec.unmarshalOStringFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐStringFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalOIntFilterInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐIntFilterInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "and":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			it.And, err = ec.unmarshalOCreditCardFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "or":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			it.Or, err = ec.unmarshalOCreditCardFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "not":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			it.Not, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreditCardInput(ctx context.Context, obj interface{}) (model.CreditCardInput, error) {
+	var it model.CreditCardInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "number", "userID"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "number":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
+			it.Number, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userID":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreditCardOrder(ctx context.Context, obj interface{}) (model.CreditCardOrder, error) {
+	var it model.CreditCardOrder
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"asc", "desc"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "asc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("asc"))
+			it.Asc, err = ec.unmarshalOCreditCardOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "desc":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("desc"))
+			it.Desc, err = ec.unmarshalOCreditCardOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrderable(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreditCardPatch(ctx context.Context, obj interface{}) (model.CreditCardPatch, error) {
+	var it model.CreditCardPatch
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "number", "userID"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -7688,19 +11018,19 @@ func (ec *executionContext) unmarshalInputCompanyWhere(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
-		case "Name":
+		case "number":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("number"))
+			it.Number, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "motherCompanyID":
+		case "userID":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("motherCompanyID"))
-			it.MotherCompanyID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userID"))
+			it.UserID, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8526,49 +11856,33 @@ func (ec *executionContext) unmarshalInputTodoRef2UsersInput(ctx context.Context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputTodoWhere(ctx context.Context, obj interface{}) (model.TodoWhere, error) {
-	var it model.TodoWhere
+func (ec *executionContext) unmarshalInputUpdateCatInput(ctx context.Context, obj interface{}) (model.UpdateCatInput, error) {
+	var it model.UpdateCatInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "title", "description", "done"}
+	fieldsInOrder := [...]string{"filter", "set"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "id":
+		case "filter":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			it.Filter, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "title":
+		case "set":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "description":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "done":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("done"))
-			it.Done, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
+			it.Set, err = ec.unmarshalOCatPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatPatch(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8605,6 +11919,42 @@ func (ec *executionContext) unmarshalInputUpdateCompanyInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
 			it.Set, err = ec.unmarshalOCompanyPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyPatch(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateCreditCardInput(ctx context.Context, obj interface{}) (model.UpdateCreditCardInput, error) {
+	var it model.UpdateCreditCardInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"filter", "set"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "filter":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
+			it.Filter, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "set":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("set"))
+			it.Set, err = ec.unmarshalOCreditCardPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatch(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8693,7 +12043,7 @@ func (ec *executionContext) unmarshalInputUserFiltersInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList", "and", "or", "not"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList", "cat", "creditCards", "and", "or", "not"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8740,6 +12090,22 @@ func (ec *executionContext) unmarshalInputUserFiltersInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "cat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cat"))
+			it.Cat, err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "creditCards":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creditCards"))
+			it.CreditCards, err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "and":
 			var err error
 
@@ -8777,7 +12143,7 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList", "cat", "creditCards"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8821,6 +12187,22 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("todoList"))
 			it.TodoList, err = ec.unmarshalNTodoInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐTodoInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "cat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cat"))
+			it.Cat, err = ec.unmarshalOCatInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "creditCards":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creditCards"))
+			it.CreditCards, err = ec.unmarshalOCreditCardInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8873,7 +12255,7 @@ func (ec *executionContext) unmarshalInputUserPatch(ctx context.Context, obj int
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList"}
+	fieldsInOrder := [...]string{"id", "name", "companyID", "company", "todoList", "cat", "creditCards"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -8920,6 +12302,22 @@ func (ec *executionContext) unmarshalInputUserPatch(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "cat":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cat"))
+			it.Cat, err = ec.unmarshalOCatPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatPatch(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "creditCards":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("creditCards"))
+			it.CreditCards, err = ec.unmarshalOCreditCardPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatchᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -8962,50 +12360,6 @@ func (ec *executionContext) unmarshalInputUserRef2TodosInput(ctx context.Context
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputUserWhere(ctx context.Context, obj interface{}) (model.UserWhere, error) {
-	var it model.UserWhere
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"id", "name", "companyID"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "companyID":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("companyID"))
-			it.CompanyID, err = ec.unmarshalOInt2ᚖint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -9013,6 +12367,47 @@ func (ec *executionContext) unmarshalInputUserWhere(ctx context.Context, obj int
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
+
+var addCatPayloadImplementors = []string{"AddCatPayload"}
+
+func (ec *executionContext) _AddCatPayload(ctx context.Context, sel ast.SelectionSet, obj *model.AddCatPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addCatPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AddCatPayload")
+		case "cat":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddCatPayload_cat(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
 
 var addCompanyPayloadImplementors = []string{"AddCompanyPayload"}
 
@@ -9034,6 +12429,47 @@ func (ec *executionContext) _AddCompanyPayload(ctx context.Context, sel ast.Sele
 					}
 				}()
 				res = ec._AddCompanyPayload_company(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var addCreditCardPayloadImplementors = []string{"AddCreditCardPayload"}
+
+func (ec *executionContext) _AddCreditCardPayload(ctx context.Context, sel ast.SelectionSet, obj *model.AddCreditCardPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, addCreditCardPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AddCreditCardPayload")
+		case "creditCard":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._AddCreditCardPayload_creditCard(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9126,6 +12562,94 @@ func (ec *executionContext) _AddUserPayload(ctx context.Context, sel ast.Selecti
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var catImplementors = []string{"Cat"}
+
+func (ec *executionContext) _Cat(ctx context.Context, sel ast.SelectionSet, obj *model.Cat) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, catImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Cat")
+		case "id":
+
+			out.Values[i] = ec._Cat_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._Cat_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "age":
+
+			out.Values[i] = ec._Cat_age(ctx, field, obj)
+
+		case "UserID":
+
+			out.Values[i] = ec._Cat_UserID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var catQueryResultImplementors = []string{"CatQueryResult"}
+
+func (ec *executionContext) _CatQueryResult(ctx context.Context, sel ast.SelectionSet, obj *model.CatQueryResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, catQueryResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CatQueryResult")
+		case "data":
+
+			out.Values[i] = ec._CatQueryResult_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._CatQueryResult_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._CatQueryResult_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9239,6 +12763,142 @@ func (ec *executionContext) _CompanyQueryResult(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var creditCardImplementors = []string{"CreditCard"}
+
+func (ec *executionContext) _CreditCard(ctx context.Context, sel ast.SelectionSet, obj *model.CreditCard) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, creditCardImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreditCard")
+		case "id":
+
+			out.Values[i] = ec._CreditCard_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "number":
+
+			out.Values[i] = ec._CreditCard_number(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "userID":
+
+			out.Values[i] = ec._CreditCard_userID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var creditCardQueryResultImplementors = []string{"CreditCardQueryResult"}
+
+func (ec *executionContext) _CreditCardQueryResult(ctx context.Context, sel ast.SelectionSet, obj *model.CreditCardQueryResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, creditCardQueryResultImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CreditCardQueryResult")
+		case "data":
+
+			out.Values[i] = ec._CreditCardQueryResult_data(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+
+			out.Values[i] = ec._CreditCardQueryResult_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+
+			out.Values[i] = ec._CreditCardQueryResult_totalCount(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteCatPayloadImplementors = []string{"DeleteCatPayload"}
+
+func (ec *executionContext) _DeleteCatPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteCatPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteCatPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteCatPayload")
+		case "cat":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteCatPayload_cat(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._DeleteCatPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "msg":
+
+			out.Values[i] = ec._DeleteCatPayload_msg(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var deleteCompanyPayloadImplementors = []string{"DeleteCompanyPayload"}
 
 func (ec *executionContext) _DeleteCompanyPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteCompanyPayload) graphql.Marshaler {
@@ -9279,6 +12939,58 @@ func (ec *executionContext) _DeleteCompanyPayload(ctx context.Context, sel ast.S
 		case "msg":
 
 			out.Values[i] = ec._DeleteCompanyPayload_msg(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var deleteCreditCardPayloadImplementors = []string{"DeleteCreditCardPayload"}
+
+func (ec *executionContext) _DeleteCreditCardPayload(ctx context.Context, sel ast.SelectionSet, obj *model.DeleteCreditCardPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, deleteCreditCardPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DeleteCreditCardPayload")
+		case "creditCard":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._DeleteCreditCardPayload_creditCard(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._DeleteCreditCardPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "msg":
+
+			out.Values[i] = ec._DeleteCreditCardPayload_msg(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -9420,6 +13132,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_b(ctx, field)
 			})
 
+		case "addCat":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addCat(ctx, field)
+			})
+
+		case "updateCat":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateCat(ctx, field)
+			})
+
+		case "deleteCat":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteCat(ctx, field)
+			})
+
 		case "addCompany":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -9436,6 +13166,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteCompany(ctx, field)
+			})
+
+		case "addCreditCard":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addCreditCard(ctx, field)
+			})
+
+		case "updateCreditCard":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateCreditCard(ctx, field)
+			})
+
+		case "deleteCreditCard":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteCreditCard(ctx, field)
 			})
 
 		case "addUser2Todos":
@@ -9536,6 +13284,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getCat":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCat(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "queryCat":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_queryCat(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getCompany":
 			field := field
 
@@ -9566,6 +13354,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_queryCompany(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getCreditCard":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCreditCard(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "queryCreditCard":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_queryCreditCard(ctx, field)
 				return res
 			}
 
@@ -9774,6 +13602,54 @@ func (ec *executionContext) _TodoQueryResult(ctx context.Context, sel ast.Select
 	return out
 }
 
+var updateCatPayloadImplementors = []string{"UpdateCatPayload"}
+
+func (ec *executionContext) _UpdateCatPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateCatPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateCatPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateCatPayload")
+		case "cat":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateCatPayload_cat(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._UpdateCatPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var updateCompanyPayloadImplementors = []string{"UpdateCompanyPayload"}
 
 func (ec *executionContext) _UpdateCompanyPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateCompanyPayload) graphql.Marshaler {
@@ -9807,6 +13683,54 @@ func (ec *executionContext) _UpdateCompanyPayload(ctx context.Context, sel ast.S
 		case "count":
 
 			out.Values[i] = ec._UpdateCompanyPayload_count(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var updateCreditCardPayloadImplementors = []string{"UpdateCreditCardPayload"}
+
+func (ec *executionContext) _UpdateCreditCardPayload(ctx context.Context, sel ast.SelectionSet, obj *model.UpdateCreditCardPayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updateCreditCardPayloadImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdateCreditCardPayload")
+		case "creditCard":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UpdateCreditCardPayload_creditCard(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "count":
+
+			out.Values[i] = ec._UpdateCreditCardPayload_count(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
@@ -9957,6 +13881,14 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "cat":
+
+			out.Values[i] = ec._User_cat(ctx, field, obj)
+
+		case "creditCards":
+
+			out.Values[i] = ec._User_creditCards(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10343,6 +14275,101 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNCat2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Cat) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCat2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCat(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCat2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCat(ctx context.Context, sel ast.SelectionSet, v *model.Cat) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Cat(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCatFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx context.Context, v interface{}) (model.CatFiltersInput, error) {
+	res, err := ec.unmarshalInputCatFiltersInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCatInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInputᚄ(ctx context.Context, v interface{}) ([]*model.CatInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CatInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCatInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNCatInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInput(ctx context.Context, v interface{}) (*model.CatInput, error) {
+	res, err := ec.unmarshalInputCatInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCatQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx context.Context, sel ast.SelectionSet, v model.CatQueryResult) graphql.Marshaler {
+	return ec._CatQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.CatQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CatQueryResult(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNCompany2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompanyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Company) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -10436,6 +14463,106 @@ func (ec *executionContext) marshalNCompanyQueryResult2ᚖgithubᚗcomᚋfasibio
 		return graphql.Null
 	}
 	return ec._CompanyQueryResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNCreditCard2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CreditCard) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCreditCard2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCard(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNCreditCard2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCard(ctx context.Context, sel ast.SelectionSet, v *model.CreditCard) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreditCard(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNCreditCardFiltersInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx context.Context, v interface{}) (model.CreditCardFiltersInput, error) {
+	res, err := ec.unmarshalInputCreditCardFiltersInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreditCardInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInputᚄ(ctx context.Context, v interface{}) ([]*model.CreditCardInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CreditCardInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreditCardInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNCreditCardInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInput(ctx context.Context, v interface{}) (*model.CreditCardInput, error) {
+	res, err := ec.unmarshalInputCreditCardInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreditCardPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatch(ctx context.Context, v interface{}) (*model.CreditCardPatch, error) {
+	res, err := ec.unmarshalInputCreditCardPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNCreditCardQueryResult2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx context.Context, sel ast.SelectionSet, v model.CreditCardQueryResult) graphql.Marshaler {
+	return ec._CreditCardQueryResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.CreditCardQueryResult) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._CreditCardQueryResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
@@ -10610,8 +14737,18 @@ func (ec *executionContext) unmarshalNTodoRef2UsersInput2githubᚗcomᚋfasibio�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNUpdateCatInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCatInput(ctx context.Context, v interface{}) (model.UpdateCatInput, error) {
+	res, err := ec.unmarshalInputUpdateCatInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUpdateCompanyInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyInput(ctx context.Context, v interface{}) (model.UpdateCompanyInput, error) {
 	res, err := ec.unmarshalInputUpdateCompanyInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateCreditCardInput2githubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCreditCardInput(ctx context.Context, v interface{}) (model.UpdateCreditCardInput, error) {
+	res, err := ec.unmarshalInputUpdateCreditCardInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -10988,11 +15125,25 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) marshalOAddCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddCatPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddCatPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AddCatPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOAddCompanyPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddCompanyPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddCompanyPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._AddCompanyPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOAddCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddCreditCardPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddCreditCardPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AddCreditCardPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOAddTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐAddTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.AddTodoPayload) graphql.Marshaler {
@@ -11073,6 +15224,88 @@ func (ec *executionContext) unmarshalOBooleanFilterInput2ᚖgithubᚗcomᚋfasib
 	}
 	res, err := ec.unmarshalInputBooleanFilterInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCat2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCat(ctx context.Context, sel ast.SelectionSet, v *model.Cat) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Cat(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCatFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx context.Context, v interface{}) ([]*model.CatFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CatFiltersInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCatFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatFiltersInput(ctx context.Context, v interface{}) (*model.CatFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCatFiltersInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCatInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatInput(ctx context.Context, v interface{}) (*model.CatInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCatInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCatOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrder(ctx context.Context, v interface{}) (*model.CatOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCatOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCatOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrderable(ctx context.Context, v interface{}) (*model.CatOrderable, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.CatOrderable)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCatOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatOrderable(ctx context.Context, sel ast.SelectionSet, v *model.CatOrderable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOCatPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatPatch(ctx context.Context, v interface{}) (*model.CatPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCatPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCatQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCatQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.CatQueryResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CatQueryResult(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOCompany2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCompany(ctx context.Context, sel ast.SelectionSet, v *model.Company) graphql.Marshaler {
@@ -11157,11 +15390,186 @@ func (ec *executionContext) marshalOCompanyQueryResult2ᚖgithubᚗcomᚋfasibio
 	return ec._CompanyQueryResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCreditCard2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CreditCard) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCreditCard2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCard(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCreditCard2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCard(ctx context.Context, sel ast.SelectionSet, v *model.CreditCard) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CreditCard(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCreditCardFiltersInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx context.Context, v interface{}) ([]*model.CreditCardFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CreditCardFiltersInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCreditCardFiltersInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardFiltersInput(ctx context.Context, v interface{}) (*model.CreditCardFiltersInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreditCardFiltersInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCreditCardInput2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInputᚄ(ctx context.Context, v interface{}) ([]*model.CreditCardInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CreditCardInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreditCardInput2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCreditCardOrder2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrder(ctx context.Context, v interface{}) (*model.CreditCardOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreditCardOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOCreditCardOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrderable(ctx context.Context, v interface{}) (*model.CreditCardOrderable, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.CreditCardOrderable)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCreditCardOrderable2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardOrderable(ctx context.Context, sel ast.SelectionSet, v *model.CreditCardOrderable) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOCreditCardPatch2ᚕᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatchᚄ(ctx context.Context, v interface{}) ([]*model.CreditCardPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.CreditCardPatch, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreditCardPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatch(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCreditCardPatch2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardPatch(ctx context.Context, v interface{}) (*model.CreditCardPatch, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCreditCardPatch(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCreditCardQueryResult2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐCreditCardQueryResult(ctx context.Context, sel ast.SelectionSet, v *model.CreditCardQueryResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CreditCardQueryResult(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODeleteCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteCatPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteCatPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DeleteCatPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalODeleteCompanyPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteCompanyPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteCompanyPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._DeleteCompanyPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODeleteCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteCreditCardPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteCreditCardPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DeleteCreditCardPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalODeleteTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐDeleteTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.DeleteTodoPayload) graphql.Marshaler {
@@ -11510,11 +15918,25 @@ func (ec *executionContext) marshalOTodoQueryResult2ᚖgithubᚗcomᚋfasibioᚋ
 	return ec._TodoQueryResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOUpdateCatPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCatPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateCatPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UpdateCatPayload(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOUpdateCompanyPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCompanyPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateCompanyPayload) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._UpdateCompanyPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUpdateCreditCardPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateCreditCardPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateCreditCardPayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UpdateCreditCardPayload(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUpdateTodoPayload2ᚖgithubᚗcomᚋfasibioᚋgqlgensqlᚋgraphᚋmodelᚐUpdateTodoPayload(ctx context.Context, sel ast.SelectionSet, v *model.UpdateTodoPayload) graphql.Marshaler {

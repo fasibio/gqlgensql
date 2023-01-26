@@ -10,34 +10,34 @@ import (
 )
 
 type GqlGenSqlHookM interface {
-	model.User | model.Company | model.Todo
+	model.Cat | model.Company | model.Todo | model.User | model.CreditCard
 }
 type GqlGenSqlHookF interface {
-	model.CompanyFiltersInput | model.TodoFiltersInput | model.UserFiltersInput
+	model.CreditCardFiltersInput | model.CatFiltersInput | model.CompanyFiltersInput | model.TodoFiltersInput | model.UserFiltersInput
 }
 
 type GqlGenSqlHookQueryO interface {
-	model.CompanyOrder | model.TodoOrder | model.UserOrder
+	model.UserOrder | model.CreditCardOrder | model.CatOrder | model.CompanyOrder | model.TodoOrder
 }
 
 type GqlGenSqlHookI interface {
-	model.CompanyInput | model.TodoInput | model.UserInput
+	model.TodoInput | model.UserInput | model.CreditCardInput | model.CatInput | model.CompanyInput
 }
 
 type GqlGenSqlHookU interface {
-	model.UpdateUserInput | model.UpdateCompanyInput | model.UpdateTodoInput
+	model.UpdateCatInput | model.UpdateCompanyInput | model.UpdateTodoInput | model.UpdateUserInput | model.UpdateCreditCardInput
 }
 
 type GqlGenSqlHookUP interface {
-	model.UpdateCompanyPayload | model.UpdateTodoPayload | model.UpdateUserPayload
+	model.UpdateCatPayload | model.UpdateCompanyPayload | model.UpdateTodoPayload | model.UpdateUserPayload | model.UpdateCreditCardPayload
 }
 
 type GqlGenSqlHookDP interface {
-	model.DeleteTodoPayload | model.DeleteUserPayload | model.DeleteCompanyPayload
+	model.DeleteCatPayload | model.DeleteCompanyPayload | model.DeleteTodoPayload | model.DeleteUserPayload | model.DeleteCreditCardPayload
 }
 
 type GqlGenSqlHookAP interface {
-	model.AddCompanyPayload | model.AddTodoPayload | model.AddUserPayload
+	model.AddCatPayload | model.AddCompanyPayload | model.AddTodoPayload | model.AddUserPayload | model.AddCreditCardPayload
 }
 
 type GqlGenSqlDB struct {
@@ -53,7 +53,7 @@ func NewGqlGenSqlDB(db *gorm.DB) GqlGenSqlDB {
 }
 
 func (db *GqlGenSqlDB) Init() {
-	db.Db.AutoMigrate(&model.Company{}, &model.Todo{}, &model.User{})
+	db.Db.AutoMigrate(&model.CreditCard{}, &model.Cat{}, &model.Company{}, &model.Todo{}, &model.User{})
 }
 
 func AddGetHook[T GqlGenSqlHookM](db *GqlGenSqlDB, name string, implementation GqlGenSqlHookGet[T]) {

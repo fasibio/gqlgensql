@@ -32,9 +32,22 @@ type User @SQL(query: {
   companyID: Int
   company: Company
   todoList: [Todo!]!@SQL_GORM(value:"many2many:user_todos")
+  cat: Cat
+  creditCards: [CreditCard!]
 }
 
-type Cat
+type CreditCard @SQL{
+  id: Int! @SQL_PRIMARY
+  number: String!
+  userID: Int!
+}
+
+type Cat @SQL{
+  id: Int! @SQL_PRIMARY
+  name: String!
+  age: Int
+  UserID: Int!
+}
 
 type Company @SQL{
   id: Int! @SQL_PRIMARY

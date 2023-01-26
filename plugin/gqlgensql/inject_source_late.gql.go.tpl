@@ -161,11 +161,6 @@ input {{$object.Name}}FiltersInput{
   not: {{$object.Name}}FiltersInput
 }
 
-input {{$object.Name}}Where{
-  {{- range $entityKey, $entity := $object.WhereAbleEntities}}
-  {{$entity.Name}}: {{$entity.GqlType "Patch"}}
-  {{- end}}
-}
 
 {{- if $object.SQLDirective.HasQueries}}
 extend type Query {

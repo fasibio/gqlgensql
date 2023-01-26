@@ -13,6 +13,236 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// GetCat is the resolver for the getCat field.
+func (r *queryResolver) GetCat(ctx context.Context, id int) (*model.Cat, error) {
+	v, okHook := r.Sql.Hooks["GetCat"].(db.GqlGenSqlHookGet[model.Cat])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "Cat"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var res model.Cat
+	db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
+}
+
+// QueryCat is the resolver for the queryCat field.
+func (r *queryResolver) QueryCat(ctx context.Context, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error) {
+	v, okHook := r.Sql.Hooks["QueryCat"].(db.GqlGenSqlHookQuery[model.Cat, model.CatFiltersInput, model.CatOrder])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, order, first, offset, err = v.Received(ctx, r.Sql, filter, order, first, offset)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var res []*model.Cat
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Cat")
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	if filter != nil {
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
+		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if order != nil {
+		if order.Asc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s asc", tableName, order.Asc))
+		}
+		if order.Desc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s desc", tableName, order.Desc))
+		}
+	}
+	var total int64
+	db.Model(res).Count(&total)
+	if first != nil {
+		db = db.Limit(*first)
+	}
+	if offset != nil {
+		db = db.Offset(*offset)
+	}
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx, res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx, res, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &model.CatQueryResult{
+		Data:       res,
+		Count:      len(res),
+		TotalCount: int(total),
+	}, db.Error
+}
+func (r *Resolver) AddCatPayload() generated.AddCatPayloadResolver {
+	return &catPayloadResolver[*model.AddCatPayload]{r}
+}
+func (r *Resolver) DeleteCatPayload() generated.DeleteCatPayloadResolver {
+	return &catPayloadResolver[*model.DeleteCatPayload]{r}
+}
+func (r *Resolver) UpdateCatPayload() generated.UpdateCatPayloadResolver {
+	return &catPayloadResolver[*model.UpdateCatPayload]{r}
+}
+
+type catPayload interface {
+	*model.AddCatPayload | *model.DeleteCatPayload | *model.UpdateCatPayload
+}
+
+type catPayloadResolver[T catPayload] struct {
+	*Resolver
+}
+
+func (r *catPayloadResolver[T]) Cat(ctx context.Context, obj T, filter *model.CatFiltersInput, order *model.CatOrder, first *int, offset *int) (*model.CatQueryResult, error) {
+	return r.Query().QueryCat(ctx, filter, order, first, offset)
+}
+
+// AddCat is the resolver for the addCat field.
+func (r *mutationResolver) AddCat(ctx context.Context, input []*model.CatInput) (*model.AddCatPayload, error) {
+	v, okHook := r.Sql.Hooks["AddCat"].(db.GqlGenSqlHookAdd[model.Cat, model.CatInput, model.AddCatPayload])
+	res := &model.AddCatPayload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, input)
+		if err != nil {
+			return nil, err
+		}
+	}
+	obj := make([]model.Cat, len(input))
+	for i, v := range input {
+		obj[i] = v.MergeToType()
+	}
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx, db, obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
+// UpdateCat is the resolver for the updateCat field.
+func (r *mutationResolver) UpdateCat(ctx context.Context, input model.UpdateCatInput) (*model.UpdateCatPayload, error) {
+	v, okHook := r.Sql.Hooks["UpdateCat"].(db.GqlGenSqlHookUpdate[model.Cat, model.UpdateCatInput, model.UpdateCatPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, &input)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Cat")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	obj := model.Cat{}
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx, db, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.UpdateCatPayload{
+		Count: int(db.RowsAffected),
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
+// DeleteCat is the resolver for the deleteCat field.
+func (r *mutationResolver) DeleteCat(ctx context.Context, filter model.CatFiltersInput) (*model.DeleteCatPayload, error) {
+	v, okHook := r.Sql.Hooks["DeleteCat"].(db.GqlGenSqlHookDelete[model.Cat, model.CatFiltersInput, model.DeleteCatPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("Cat")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
+	obj := model.Cat{}
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.DeleteCatPayload{
+		Count: int(db.RowsAffected),
+		Msg:   &msg,
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
 // GetCompany is the resolver for the getCompany field.
 func (r *queryResolver) GetCompany(ctx context.Context, id int) (*model.Company, error) {
 	v, okHook := r.Sql.Hooks["GetCompany"].(db.GqlGenSqlHookGet[model.Company])
@@ -230,6 +460,236 @@ func (r *mutationResolver) DeleteCompany(ctx context.Context, filter model.Compa
 	db = db.Delete(&obj)
 	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
 	res := &model.DeleteCompanyPayload{
+		Count: int(db.RowsAffected),
+		Msg:   &msg,
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
+// GetCreditCard is the resolver for the getCreditCard field.
+func (r *queryResolver) GetCreditCard(ctx context.Context, id int) (*model.CreditCard, error) {
+	v, okHook := r.Sql.Hooks["GetCreditCard"].(db.GqlGenSqlHookGet[model.CreditCard])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, err = v.Received(ctx, r.Sql, id)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "CreditCard"))
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var res model.CreditCard
+	db = db.First(&res, id)
+	if okHook {
+		r, err := v.AfterCallDb(ctx, &res)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+		r, err = v.BeforeReturn(ctx, &res, db)
+		if err != nil {
+			return nil, err
+		}
+		res = *r
+	}
+	return &res, db.Error
+}
+
+// QueryCreditCard is the resolver for the queryCreditCard field.
+func (r *queryResolver) QueryCreditCard(ctx context.Context, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error) {
+	v, okHook := r.Sql.Hooks["QueryCreditCard"].(db.GqlGenSqlHookQuery[model.CreditCard, model.CreditCardFiltersInput, model.CreditCardOrder])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, order, first, offset, err = v.Received(ctx, r.Sql, filter, order, first, offset)
+		if err != nil {
+			return nil, err
+		}
+	}
+	var res []*model.CreditCard
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("CreditCard")
+	db = runtimehelper.GetPreloadSelection(ctx, db, runtimehelper.GetPreloadsMap(ctx, "data").SubTables[0])
+	if filter != nil {
+		sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
+		db.Where(sql, arguments...)
+	}
+
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if order != nil {
+		if order.Asc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s asc", tableName, order.Asc))
+		}
+		if order.Desc != nil {
+			db = db.Order(fmt.Sprintf("%s.%s desc", tableName, order.Desc))
+		}
+	}
+	var total int64
+	db.Model(res).Count(&total)
+	if first != nil {
+		db = db.Limit(*first)
+	}
+	if offset != nil {
+		db = db.Offset(*offset)
+	}
+	db = db.Find(&res)
+	if okHook {
+		var err error
+		res, err = v.AfterCallDb(ctx, res)
+		if err != nil {
+			return nil, err
+		}
+		res, err = v.BeforeReturn(ctx, res, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &model.CreditCardQueryResult{
+		Data:       res,
+		Count:      len(res),
+		TotalCount: int(total),
+	}, db.Error
+}
+func (r *Resolver) AddCreditCardPayload() generated.AddCreditCardPayloadResolver {
+	return &creditCardPayloadResolver[*model.AddCreditCardPayload]{r}
+}
+func (r *Resolver) DeleteCreditCardPayload() generated.DeleteCreditCardPayloadResolver {
+	return &creditCardPayloadResolver[*model.DeleteCreditCardPayload]{r}
+}
+func (r *Resolver) UpdateCreditCardPayload() generated.UpdateCreditCardPayloadResolver {
+	return &creditCardPayloadResolver[*model.UpdateCreditCardPayload]{r}
+}
+
+type creditCardPayload interface {
+	*model.AddCreditCardPayload | *model.DeleteCreditCardPayload | *model.UpdateCreditCardPayload
+}
+
+type creditCardPayloadResolver[T creditCardPayload] struct {
+	*Resolver
+}
+
+func (r *creditCardPayloadResolver[T]) CreditCard(ctx context.Context, obj T, filter *model.CreditCardFiltersInput, order *model.CreditCardOrder, first *int, offset *int) (*model.CreditCardQueryResult, error) {
+	return r.Query().QueryCreditCard(ctx, filter, order, first, offset)
+}
+
+// AddCreditCard is the resolver for the addCreditCard field.
+func (r *mutationResolver) AddCreditCard(ctx context.Context, input []*model.CreditCardInput) (*model.AddCreditCardPayload, error) {
+	v, okHook := r.Sql.Hooks["AddCreditCard"].(db.GqlGenSqlHookAdd[model.CreditCard, model.CreditCardInput, model.AddCreditCardPayload])
+	res := &model.AddCreditCardPayload{}
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, input)
+		if err != nil {
+			return nil, err
+		}
+	}
+	obj := make([]model.CreditCard, len(input))
+	for i, v := range input {
+		obj[i] = v.MergeToType()
+	}
+	db = db.Omit(clause.Associations)
+	if okHook {
+		var err error
+		db, obj, err = v.BeforeCallDb(ctx, db, obj)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Create(&obj)
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
+// UpdateCreditCard is the resolver for the updateCreditCard field.
+func (r *mutationResolver) UpdateCreditCard(ctx context.Context, input model.UpdateCreditCardInput) (*model.UpdateCreditCardPayload, error) {
+	v, okHook := r.Sql.Hooks["UpdateCreditCard"].(db.GqlGenSqlHookUpdate[model.CreditCard, model.UpdateCreditCardInput, model.UpdateCreditCardPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, input, err = v.Received(ctx, r.Sql, &input)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("CreditCard")
+	sql, arguments := runtimehelper.CombineSimpleQuery(input.Filter.ExtendsDatabaseQuery(r.Sql.Db, tableName), "AND")
+	obj := model.CreditCard{}
+	db = db.Model(&obj).Where(sql, arguments...)
+	u := input.Set.MergeToType()
+	update := &u
+	if okHook {
+		var err error
+		db, update, err = v.BeforeCallDb(ctx, db, update)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Updates(*update)
+	res := &model.UpdateCreditCardPayload{
+		Count: int(db.RowsAffected),
+	}
+	if okHook {
+		var err error
+		res, err = v.BeforeReturn(ctx, db, res)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, db.Error
+}
+
+// DeleteCreditCard is the resolver for the deleteCreditCard field.
+func (r *mutationResolver) DeleteCreditCard(ctx context.Context, filter model.CreditCardFiltersInput) (*model.DeleteCreditCardPayload, error) {
+	v, okHook := r.Sql.Hooks["DeleteCreditCard"].(db.GqlGenSqlHookDelete[model.CreditCard, model.CreditCardFiltersInput, model.DeleteCreditCardPayload])
+	db := r.Sql.Db
+	if okHook {
+		var err error
+		db, filter, err = v.Received(ctx, r.Sql, &filter)
+		if err != nil {
+			return nil, err
+		}
+	}
+	tableName := r.Sql.Db.Config.NamingStrategy.TableName("CreditCard")
+	sql, arguments := runtimehelper.CombineSimpleQuery(filter.ExtendsDatabaseQuery(db, tableName), "AND")
+	obj := model.CreditCard{}
+	db = db.Where(sql, arguments...)
+	if okHook {
+		var err error
+		db, err = v.BeforeCallDb(ctx, db)
+		if err != nil {
+			return nil, err
+		}
+	}
+	db = db.Delete(&obj)
+	msg := fmt.Sprintf("%d rows deleted", db.RowsAffected)
+	res := &model.DeleteCreditCardPayload{
 		Count: int(db.RowsAffected),
 		Msg:   &msg,
 	}

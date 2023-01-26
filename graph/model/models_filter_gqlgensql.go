@@ -10,6 +10,44 @@ import (
 	"gorm.io/gorm"
 )
 
+func (d *CatFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []runtimehelper.ConditionElement {
+	res := make([]runtimehelper.ConditionElement, 0)
+	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
+		for _, v := range d.And {
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
+		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationAnd, tmp...))
+	}
+
+	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
+		for _, v := range d.Or {
+
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
+		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
+	}
+
+	if d.Not != nil {
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
+	}
+	if d.ID != nil {
+		res = append(res, d.ID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "id"))...)
+	}
+	if d.Name != nil {
+		res = append(res, d.Name.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "name"))...)
+	}
+	if d.Age != nil {
+		res = append(res, d.Age.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "age"))...)
+	}
+	if d.UserID != nil {
+		res = append(res, d.UserID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "user_id"))...)
+	}
+
+	return res
+}
+
 func (d *CompanyFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []runtimehelper.ConditionElement {
 	res := make([]runtimehelper.ConditionElement, 0)
 	if d.And != nil {
@@ -32,23 +70,53 @@ func (d *CompanyFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []
 	if d.Not != nil {
 		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
 	}
-
 	if d.ID != nil {
 		res = append(res, d.ID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "id"))...)
 	}
-
 	if d.Name != nil {
 		res = append(res, d.Name.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "name"))...)
 	}
-
 	if d.MotherCompanyID != nil {
 		res = append(res, d.MotherCompanyID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "mother_company_id"))...)
 	}
-
 	if d.MotherCompany != nil {
-		tableName := db.Config.NamingStrategy.TableName("MotherCompany")
-		db := db.Joins(fmt.Sprintf("JOIN %s ON %s.id = %s.company_id", tableName, tableName, alias))
-		res = append(res, d.MotherCompany.ExtendsDatabaseQuery(db, tableName)...)
+		db := db.Joins("MotherCompany")
+		res = append(res, d.MotherCompany.ExtendsDatabaseQuery(db, "MotherCompany")...)
+	}
+
+	return res
+}
+
+func (d *CreditCardFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []runtimehelper.ConditionElement {
+	res := make([]runtimehelper.ConditionElement, 0)
+	if d.And != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
+		for _, v := range d.And {
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
+		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationAnd, tmp...))
+	}
+
+	if d.Or != nil {
+		tmp := make([]runtimehelper.ConditionElement, 0)
+		for _, v := range d.Or {
+
+			tmp = append(tmp, runtimehelper.Complex(runtimehelper.RelationAnd, v.ExtendsDatabaseQuery(db, alias)...))
+		}
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationOr, tmp...))
+	}
+
+	if d.Not != nil {
+		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
+	}
+	if d.ID != nil {
+		res = append(res, d.ID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "id"))...)
+	}
+	if d.Number != nil {
+		res = append(res, d.Number.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "number"))...)
+	}
+	if d.UserID != nil {
+		res = append(res, d.UserID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "user_id"))...)
 	}
 
 	return res
@@ -76,25 +144,20 @@ func (d *TodoFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []run
 	if d.Not != nil {
 		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
 	}
-
 	if d.ID != nil {
 		res = append(res, d.ID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "id"))...)
 	}
-
 	if d.Title != nil {
 		res = append(res, d.Title.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "title"))...)
 	}
-
 	if d.Description != nil {
 		res = append(res, d.Description.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "description"))...)
 	}
-
 	if d.Done != nil {
 		res = append(res, d.Done.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "done"))...)
 	}
-
 	if d.Users != nil {
-		tableName := db.Config.NamingStrategy.TableName("Users")
+		tableName := db.Config.NamingStrategy.TableName("User")
 		db := db.Joins(fmt.Sprintf("JOIN user_todos ON user_todos.todo_id = %s.id JOIN %s ON user_todos.user_id = %s.id", alias, tableName, tableName))
 		res = append(res, d.Users.ExtendsDatabaseQuery(db, tableName)...)
 	}
@@ -124,29 +187,31 @@ func (d *UserFiltersInput) ExtendsDatabaseQuery(db *gorm.DB, alias string) []run
 	if d.Not != nil {
 		res = append(res, runtimehelper.Complex(runtimehelper.RelationNot, d.Not.ExtendsDatabaseQuery(db, alias)...))
 	}
-
 	if d.ID != nil {
 		res = append(res, d.ID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "id"))...)
 	}
-
 	if d.Name != nil {
 		res = append(res, d.Name.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "name"))...)
 	}
-
 	if d.CompanyID != nil {
 		res = append(res, d.CompanyID.ExtendsDatabaseQuery(db, fmt.Sprintf("%s.%s", alias, "company_id"))...)
 	}
-
 	if d.Company != nil {
-		tableName := db.Config.NamingStrategy.TableName("Company")
-		db := db.Joins(fmt.Sprintf("JOIN %s ON %s.id = %s.company_id", tableName, tableName, alias))
-		res = append(res, d.Company.ExtendsDatabaseQuery(db, tableName)...)
+		db := db.Joins("Company")
+		res = append(res, d.Company.ExtendsDatabaseQuery(db, "Company")...)
 	}
-
 	if d.TodoList != nil {
-		tableName := db.Config.NamingStrategy.TableName("TodoList")
+		tableName := db.Config.NamingStrategy.TableName("Todo")
 		db := db.Joins(fmt.Sprintf("JOIN user_todos ON user_todos.user_id = %s.id JOIN %s ON user_todos.todo_id = %s.id", alias, tableName, tableName))
 		res = append(res, d.TodoList.ExtendsDatabaseQuery(db, tableName)...)
+	}
+	if d.Cat != nil {
+		db := db.Joins("Cat")
+		res = append(res, d.Cat.ExtendsDatabaseQuery(db, "Cat")...)
+	}
+	if d.CreditCards != nil {
+		db := db.Joins("CreditCards")
+		res = append(res, d.CreditCards.ExtendsDatabaseQuery(db, "CreditCards")...)
 	}
 
 	return res
